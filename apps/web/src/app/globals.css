@@ -118,6 +118,23 @@ body {
   font-weight: 500;
 }
 
+.task-list__title--editable {
+  background: none;
+  border: none;
+  font: inherit;
+  font-weight: 500;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  padding: 2px 4px;
+  border-radius: 4px;
+  margin: -2px -4px;
+}
+
+.task-list__title--editable:hover {
+  background: #f3f4f6;
+}
+
 .task-list__description {
   color: #6b7280;
   font-size: 13px;
@@ -144,4 +161,31 @@ body {
 .task-list__delete:disabled {
   opacity: 0.5;
   cursor: default;
+}
+
+.task-list__edit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.task-list__edit-input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid #2563eb;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+}
+
+.task-list__edit-input--error {
+  border-color: #dc2626;
+}
+
+.task-list__edit-error {
+  color: #dc2626;
+  font-size: 12px;
+  white-space: nowrap;
 }

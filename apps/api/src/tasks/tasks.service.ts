@@ -6,6 +6,7 @@ import {
   type CreateTaskInput,
   type NotificationJob,
   type TaskStatus,
+  type UpdateTaskInput,
 } from '@repo/shared';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -65,6 +66,22 @@ export class TasksService {
     }
 
     return updated;
+  }
+
+  async update(id: string, input: UpdateTaskInput) {
+    const task = await this.prisma.client.task.findUnique({ where: { id } });
+
+    if (!task) {
+      throw new NotFoundException('Task not found');
+    }
+
+    return this.prisma.client.task.update({
+      where: { id },
+      data: {
+        title: input.title,
+        description: input.description,
+      },
+    });
   }
 
   async delete(id: string) {

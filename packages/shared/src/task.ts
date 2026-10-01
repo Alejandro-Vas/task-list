@@ -25,3 +25,9 @@ export const updateTaskStatusSchema = z.object({
   status: taskStatusSchema,
 });
 export type UpdateTaskStatusInput = z.infer<typeof updateTaskStatusSchema>;
+
+export const updateTaskSchema = z.object({
+  title: z.string().trim().min(1, 'Title is required').max(200),
+  description: z.string().trim().max(2000).optional(),
+});
+export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
