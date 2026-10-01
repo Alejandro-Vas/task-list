@@ -1,0 +1,33 @@
+{
+  "name": "@repo/db",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "generate": "prisma generate",
+    "migrate": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
+    "seed": "prisma db seed",
+    "studio": "prisma studio",
+    "build": "prisma generate && tsc -p tsconfig.json",
+    "dev": "tsc -w -p tsconfig.json",
+    "lint": "echo \"no lint yet\""
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "7.10.0",
+    "@prisma/client": "7.10.0",
+    "dotenv": "18.0.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.0",
+    "prisma": "7.10.0",
+    "tsx": "4.23.15"
+  }
+}

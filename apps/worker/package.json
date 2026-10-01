@@ -1,0 +1,21 @@
+{
+  "name": "@repo/worker",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "lint": "echo \"no lint yet\""
+  },
+  "dependencies": {
+    "@repo/shared": "0.0.0",
+    "bullmq": "6.3.11",
+    "dotenv": "18.0.5",
+    "ioredis": "5.11.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.0",
+    "tsx": "4.23.15"
+  }
+}
