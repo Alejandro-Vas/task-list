@@ -34,6 +34,11 @@ export const updateTaskSchema = z.object({
 });
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
 
+export const updateTaskDueDateSchema = z.object({
+  dueDate: z.iso.datetime({ offset: true }).nullable(),
+});
+export type UpdateTaskDueDateInput = z.infer<typeof updateTaskDueDateSchema>;
+
 export const TASK_FILTERS = ['ALL', 'TODO', 'IN_PROGRESS', 'DONE'] as const;
 export const taskFilterSchema = z.enum(TASK_FILTERS);
 export type TaskFilter = z.infer<typeof taskFilterSchema>;

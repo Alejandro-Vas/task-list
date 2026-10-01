@@ -12,10 +12,12 @@ import {
 import {
   createTaskSchema,
   findAllTasksQuerySchema,
+  updateTaskDueDateSchema,
   updateTaskSchema,
   updateTaskStatusSchema,
   type CreateTaskInput,
   type FindAllTasksQuery,
+  type UpdateTaskDueDateInput,
   type UpdateTaskInput,
   type UpdateTaskStatusInput,
 } from '@repo/shared';
@@ -52,6 +54,12 @@ export class TasksController {
   updateStatus(@Param('id') id: string, @Body() body: unknown) {
     const input: UpdateTaskStatusInput = updateTaskStatusSchema.parse(body);
     return this.tasksService.updateStatus(id, input.status);
+  }
+
+  @Patch(':id/due-date')
+  updateDueDate(@Param('id') id: string, @Body() body: unknown) {
+    const input: UpdateTaskDueDateInput = updateTaskDueDateSchema.parse(body);
+    return this.tasksService.updateDueDate(id, input.dueDate);
   }
 
   @Patch(':id')

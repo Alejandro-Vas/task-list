@@ -1,5 +1,6 @@
 import { ChangeStatusButton } from '@/features/change-status';
 import { DeleteTaskButton } from '@/features/delete-task';
+import { EditDueDateButton } from '@/features/edit-due-date';
 import { EditTaskButton } from '@/features/edit-task';
 import type { Task } from '../model/types';
 
@@ -38,18 +39,11 @@ export function TaskList(props: TaskListProps) {
           {task.description ? (
             <span className="task-list__description">{task.description}</span>
           ) : null}
-          {task.dueDate ? (
-            <span
-              className={`task-list__due${
-                isOverdue(task, startOfToday) ? ' task-list__due--overdue' : ''
-              }`}
-            >
-              {new Date(task.dueDate).toLocaleDateString('ru-RU', {
-                day: '2-digit',
-                month: 'short',
-              })}
-            </span>
-          ) : null}
+          <EditDueDateButton
+            taskId={task.id}
+            dueDate={task.dueDate}
+            overdue={isOverdue(task, startOfToday)}
+          />
           <DeleteTaskButton taskId={task.id} />
         </li>
       ))}
