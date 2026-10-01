@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { createTaskSchema, type CreateTaskInput } from '@repo/shared';
 import { TasksService } from './tasks.service';
 
@@ -15,5 +15,10 @@ export class TasksController {
   create(@Body() body: unknown) {
     const input: CreateTaskInput = createTaskSchema.parse(body);
     return this.tasksService.create(input);
+  }
+
+  @Delete(':id')
+  delete(@Param('id') id: string) {
+    return this.tasksService.delete(id);
   }
 }

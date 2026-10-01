@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import {
@@ -38,6 +38,17 @@ export class TasksService {
 
     await this.notificationsQueue.add('task_assigned', job);
 
+    return task;
+  }
+
+  async delete(id: string) {
+    const task = await this.prisma.client.task.findUnique({ where: { id } });
+
+    if (!task) {
+      throw new NotFoundException('Task not found');
+    }
+
+    await this.prisma.client.task.delete({ where: { id } });
     return task;
   }
 }
