@@ -7,6 +7,7 @@ import { createTask } from '@/shared/api/tasks';
 export function CreateTaskForm() {
   const router = useRouter();
   const [title, setTitle] = useState('');
+  const [dueDate, setDueDate] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,8 +22,12 @@ export function CreateTaskForm() {
     setError(null);
 
     try {
-      await createTask({ title });
+      await createTask({
+        title,
+        dueDate: dueDate ? new Date(`${dueDate}T00:00:00`).toISOString() : undefined,
+      });
       setTitle('');
+      setDueDate('');
       router.refresh();
     } catch (submitError) {
       setError(
@@ -41,6 +46,14 @@ export function CreateTaskForm() {
         onChange={(event) => setTitle(event.target.value)}
         placeholder="Task title"
         disabled={isSubmitting}
+      />
+      <input
+        className="create-task__date"
+        type="date"
+        value={dueDate}
+        onChange={(event) => setDueDate(event.target.value)}
+        disabled={isSubmitting}
+        title="Due date"
       />
       <button
         className="create-task__button"

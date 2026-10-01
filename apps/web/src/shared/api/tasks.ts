@@ -23,6 +23,19 @@ export async function fetchTasks(
   return response.json() as Promise<Task[]>;
 }
 
+export async function fetchOverdueCount(): Promise<number> {
+  const response = await fetch(`${API_URL}/api/tasks/overdue/count`, {
+    cache: 'no-store',
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to load overdue count: ${response.status}`);
+  }
+
+  const data = (await response.json()) as { count: number };
+  return data.count;
+}
+
 export async function createTask(input: CreateTaskInput): Promise<Task> {
   const response = await fetch(`${API_URL}/api/tasks`, {
     method: 'POST',

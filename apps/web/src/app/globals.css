@@ -32,6 +32,18 @@ body {
   font-size: 32px;
 }
 
+.page__overdue-badge {
+  display: inline-block;
+  margin-left: 12px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #fee2e2;
+  color: #b91c1c;
+  font-size: 13px;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
 .page__error {
   padding: 12px 16px;
   border-radius: 8px;
@@ -68,6 +80,13 @@ body {
   cursor: default;
 }
 
+.create-task__date {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
 .create-task__error {
   margin: 0;
   align-self: center;
@@ -92,6 +111,22 @@ body {
   border-radius: 8px;
   background: #fff;
   box-shadow: 0 1px 2px rgb(0 0 0 / 6%);
+}
+
+.task-list__item--overdue {
+  background: #fff5f5;
+  box-shadow: inset 3px 0 0 #dc2626;
+}
+
+.task-list__due {
+  color: #6b7280;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.task-list__due--overdue {
+  color: #dc2626;
+  font-weight: 600;
 }
 
 .task-list__status {
