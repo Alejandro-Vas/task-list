@@ -78,6 +78,23 @@ export async function updateTask(
   return response.json() as Promise<Task>;
 }
 
+export async function updateTaskDueDate(
+  id: string,
+  dueDate: string | null,
+): Promise<Task> {
+  const response = await fetch(`${API_URL}/api/tasks/${id}/due-date`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ dueDate }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to update due date: ${response.status}`);
+  }
+
+  return response.json() as Promise<Task>;
+}
+
 export async function updateTaskStatus(
   id: string,
   status: TaskStatus,

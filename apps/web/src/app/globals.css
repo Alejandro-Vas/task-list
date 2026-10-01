@@ -32,18 +32,6 @@ body {
   font-size: 32px;
 }
 
-.page__overdue-badge {
-  display: inline-block;
-  margin-left: 12px;
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: #fee2e2;
-  color: #b91c1c;
-  font-size: 13px;
-  font-weight: 600;
-  vertical-align: middle;
-}
-
 .page__error {
   padding: 12px 16px;
   border-radius: 8px;
@@ -60,9 +48,36 @@ body {
 .create-task__input {
   flex: 1;
   padding: 10px 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #9ca3af;
   border-radius: 8px;
+  background: transparent;
+  color: inherit;
   font-size: 14px;
+}
+
+.create-task__input:focus {
+  border-color: #2563eb;
+  outline: none;
+}
+
+.create-task__date {
+  padding: 10px 12px;
+  border: 1px solid #9ca3af;
+  border-radius: 8px;
+  background: transparent;
+  color-scheme: light;
+  color: inherit;
+  font-size: 14px;
+}
+
+.create-task__date:focus {
+  border-color: #2563eb;
+  outline: none;
+}
+
+.create-task__input:disabled,
+.create-task__date:disabled {
+  opacity: 0.6;
 }
 
 .create-task__button {
@@ -78,13 +93,6 @@ body {
 .create-task__button:disabled {
   opacity: 0.6;
   cursor: default;
-}
-
-.create-task__date {
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 13px;
 }
 
 .create-task__error {
@@ -111,22 +119,6 @@ body {
   border-radius: 8px;
   background: #fff;
   box-shadow: 0 1px 2px rgb(0 0 0 / 6%);
-}
-
-.task-list__item--overdue {
-  background: #fff5f5;
-  box-shadow: inset 3px 0 0 #dc2626;
-}
-
-.task-list__due {
-  color: #6b7280;
-  font-size: 12px;
-  white-space: nowrap;
-}
-
-.task-list__due--overdue {
-  color: #dc2626;
-  font-weight: 600;
 }
 
 .task-list__status {
@@ -173,6 +165,59 @@ body {
 .task-list__description {
   color: #6b7280;
   font-size: 13px;
+}
+
+.task-list__due {
+  padding: 2px 6px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #4b5563;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.task-list__due:hover {
+  background: #f3f4f6;
+}
+
+.task-list__due--overdue {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.task-list__due-add {
+  padding: 2px 6px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #9ca3af;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.task-list__due-add:hover {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.task-list__date-input {
+  padding: 4px 8px;
+  border: 1px solid #9ca3af;
+  border-radius: 6px;
+  background: transparent;
+  color-scheme: light;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+}
+
+.task-list__date-input:focus {
+  border-color: #2563eb;
+  background: #fff;
+  outline: none;
 }
 
 .task-list__delete {

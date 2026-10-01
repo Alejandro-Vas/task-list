@@ -58,12 +58,18 @@ export class TasksService {
     return task;
   }
 
-  async updateStatus(id: string, status: TaskStatus) {
+  private async getTaskOrFail(id: string) {
     const task = await this.prisma.client.task.findUnique({ where: { id } });
 
     if (!task) {
       throw new NotFoundException('Task not found');
     }
+
+    return task;
+  }
+
+  async updateStatus(id: string, status: TaskStatus) {
+    await this.getTaskOrFail(id);
 
     const updated = await this.prisma.client.task.update({
       where: { id },
@@ -84,11 +90,7 @@ export class TasksService {
   }
 
   async update(id: string, input: UpdateTaskInput) {
-    const task = await this.prisma.client.task.findUnique({ where: { id } });
-
-    if (!task) {
-      throw new NotFoundException('Task not found');
-    }
+    await this.getTaskOrFail(id);
 
     return this.prisma.client.task.update({
       where: { id },
@@ -99,12 +101,17 @@ export class TasksService {
     });
   }
 
-  async delete(id: string) {
-    const task = await this.prisma.client.task.findUnique({ where: { id } });
+  async updateDueDate(id: string, dueDate: string | null) {
+    await this.getTaskOrFail(id);
 
-    if (!task) {
-      throw new NotFoundException('Task not found');
-    }
+    return this.prisma.client.task.update({
+      where: { id },
+      data: { dueDate: dueDate ? new Date(dueDate) : null },
+    });
+  }
+
+  async delete(id: string) {
+    const task = await this.getTaskOrFail(id);
 
     await this.prisma.client.task.delete({ where: { id } });
     return task;
