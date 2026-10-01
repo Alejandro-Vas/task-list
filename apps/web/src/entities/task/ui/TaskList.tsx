@@ -1,3 +1,4 @@
+import { DeleteTaskButton } from '@/features/delete-task';
 import type { Task } from '../model/types';
 
 type TaskListProps = {
@@ -24,6 +25,7 @@ export function TaskList(props: TaskListProps) {
           {task.description ? (
             <span className="task-list__description">{task.description}</span>
           ) : null}
+          <DeleteTaskButton taskId={task.id} />
         </li>
       ))}
     </ul>

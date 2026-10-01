@@ -18,9 +18,6 @@ export default async function HomePage() {
     <main className="page">
       <header className="page__header">
         <h1 className="page__title">Task List</h1>
-        <p className="page__subtitle">
-          Monorepo boilerplate: Next.js + NestJS + Prisma + BullMQ
-        </p>
       </header>
 
       <CreateTaskForm />

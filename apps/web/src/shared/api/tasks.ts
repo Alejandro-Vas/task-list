@@ -25,3 +25,13 @@ export async function createTask(input: CreateTaskInput): Promise<Task> {
 
   return response.json() as Promise<Task>;
 }
+
+export async function deleteTask(id: string): Promise<void> {
+  const response = await fetch(`${API_URL}/api/tasks/${id}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to delete task: ${response.status}`);
+  }
+}
