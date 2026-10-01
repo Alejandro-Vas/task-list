@@ -1,15 +1,25 @@
 import { TaskList, type Task } from '@/entities/task';
 import { CreateTaskForm } from '@/features/create-task';
+import { StatusTabs } from '@/features/filter-status';
 import { fetchTasks } from '@/shared/api/tasks';
+import { taskFilterSchema, type TaskFilter } from '@repo/shared';
 
 export const dynamic = 'force-dynamic';
 
-export default async function HomePage() {
+type HomePageProps = {
+  searchParams: Promise<{ status?: string }>;
+};
+
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const { status: statusParam } = await searchParams;
+  const parsed = taskFilterSchema.safeParse(statusParam ?? 'ALL');
+  const status: TaskFilter = parsed.success ? parsed.data : 'ALL';
+
   let tasks: Task[] = [];
   let loadError: string | null = null;
 
   try {
-    tasks = await fetchTasks();
+    tasks = await fetchTasks(status);
   } catch (error) {
     loadError = error instanceof Error ? error.message : 'Unknown error';
   }
@@ -21,6 +31,8 @@ export default async function HomePage() {
       </header>
 
       <CreateTaskForm />
+
+      <StatusTabs active={status} />
 
       {loadError ? (
         <p className="page__error">

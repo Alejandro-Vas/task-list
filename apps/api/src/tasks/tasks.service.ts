@@ -5,6 +5,7 @@ import {
   QUEUE_NAMES,
   type CreateTaskInput,
   type NotificationJob,
+  type TaskFilter,
   type TaskStatus,
   type UpdateTaskInput,
 } from '@repo/shared';
@@ -18,8 +19,9 @@ export class TasksService {
     private readonly notificationsQueue: Queue,
   ) {}
 
-  findAll() {
+  findAll(status: TaskFilter = 'ALL') {
     return this.prisma.client.task.findMany({
+      where: status === 'ALL' ? undefined : { status },
       orderBy: { createdAt: 'desc' },
     });
   }

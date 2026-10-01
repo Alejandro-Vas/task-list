@@ -31,3 +31,12 @@ export const updateTaskSchema = z.object({
   description: z.string().trim().max(2000).optional(),
 });
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
+
+export const TASK_FILTERS = ['ALL', 'TODO', 'IN_PROGRESS', 'DONE'] as const;
+export const taskFilterSchema = z.enum(TASK_FILTERS);
+export type TaskFilter = z.infer<typeof taskFilterSchema>;
+
+export const findAllTasksQuerySchema = z.object({
+  status: taskFilterSchema.default('ALL'),
+});
+export type FindAllTasksQuery = z.infer<typeof findAllTasksQuerySchema>;

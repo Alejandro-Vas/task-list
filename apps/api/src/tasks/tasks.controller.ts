@@ -1,9 +1,21 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import {
   createTaskSchema,
+  findAllTasksQuerySchema,
   updateTaskSchema,
   updateTaskStatusSchema,
   type CreateTaskInput,
+  type FindAllTasksQuery,
   type UpdateTaskInput,
   type UpdateTaskStatusInput,
 } from '@repo/shared';
@@ -14,8 +26,15 @@ export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Get()
-  findAll() {
-    return this.tasksService.findAll();
+  findAll(@Query() query: unknown) {
+    const parsed = findAllTasksQuerySchema.safeParse(query);
+
+    if (!parsed.success) {
+      throw new BadRequestException('Invalid status filter');
+    }
+
+    const { status }: FindAllTasksQuery = parsed.data;
+    return this.tasksService.findAll(status);
   }
 
   @Post()
