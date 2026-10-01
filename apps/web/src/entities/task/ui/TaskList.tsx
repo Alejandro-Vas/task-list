@@ -1,3 +1,4 @@
+import { ChangeStatusButton } from '@/features/change-status';
 import { DeleteTaskButton } from '@/features/delete-task';
 import type { Task } from '../model/types';
 
@@ -16,11 +17,7 @@ export function TaskList(props: TaskListProps) {
     <ul className="task-list">
       {tasks.map((task) => (
         <li key={task.id} className="task-list__item">
-          <span
-            className={`task-list__status task-list__status--${task.status.toLowerCase()}`}
-          >
-            {task.status}
-          </span>
+          <ChangeStatusButton taskId={task.id} status={task.status} />
           <span className="task-list__title">{task.title}</span>
           {task.description ? (
             <span className="task-list__description">{task.description}</span>

@@ -5,6 +5,7 @@ import {
   QUEUE_NAMES,
   type CreateTaskInput,
   type NotificationJob,
+  type TaskStatus,
 } from '@repo/shared';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -39,6 +40,31 @@ export class TasksService {
     await this.notificationsQueue.add('task_assigned', job);
 
     return task;
+  }
+
+  async updateStatus(id: string, status: TaskStatus) {
+    const task = await this.prisma.client.task.findUnique({ where: { id } });
+
+    if (!task) {
+      throw new NotFoundException('Task not found');
+    }
+
+    const updated = await this.prisma.client.task.update({
+      where: { id },
+      data: { status },
+    });
+
+    if (status === 'DONE') {
+      const job: NotificationJob = {
+        taskId: updated.id,
+        type: 'task_completed',
+        message: `Task "${updated.title}" was completed`,
+      };
+
+      await this.notificationsQueue.add('task_completed', job);
+    }
+
+    return updated;
   }
 
   async delete(id: string) {

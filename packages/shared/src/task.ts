@@ -20,3 +20,8 @@ export const taskSchema = z.object({
   updatedAt: z.string(),
 });
 export type Task = z.infer<typeof taskSchema>;
+
+export const updateTaskStatusSchema = z.object({
+  status: taskStatusSchema,
+});
+export type UpdateTaskStatusInput = z.infer<typeof updateTaskStatusSchema>;
