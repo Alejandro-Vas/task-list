@@ -37,6 +37,11 @@ export class TasksController {
     return this.tasksService.findAll(status);
   }
 
+  @Get('overdue/count')
+  async countOverdue() {
+    return this.tasksService.countOverdue().then((count) => ({ count }));
+  }
+
   @Post()
   create(@Body() body: unknown) {
     const input: CreateTaskInput = createTaskSchema.parse(body);

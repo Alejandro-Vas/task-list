@@ -26,11 +26,24 @@ export class TasksService {
     });
   }
 
+  countOverdue() {
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    return this.prisma.client.task.count({
+      where: {
+        dueDate: { lt: startOfToday },
+        status: { not: 'DONE' },
+      },
+    });
+  }
+
   async create(input: CreateTaskInput) {
     const task = await this.prisma.client.task.create({
       data: {
         title: input.title,
         description: input.description,
+        dueDate: input.dueDate ? new Date(input.dueDate) : undefined,
       },
     });
 

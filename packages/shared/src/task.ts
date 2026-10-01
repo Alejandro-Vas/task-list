@@ -6,6 +6,7 @@ export type TaskStatus = z.infer<typeof taskStatusSchema>;
 export const createTaskSchema = z.object({
   title: z.string().trim().min(1).max(200),
   description: z.string().trim().max(2000).optional(),
+  dueDate: z.iso.datetime({ offset: true }).optional(),
 });
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 
@@ -16,6 +17,7 @@ export const taskSchema = z.object({
   status: taskStatusSchema,
   assigneeId: z.string().nullable(),
   projectId: z.string().nullable(),
+  dueDate: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
