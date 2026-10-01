@@ -1,8 +1,10 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import {
   createTaskSchema,
+  updateTaskSchema,
   updateTaskStatusSchema,
   type CreateTaskInput,
+  type UpdateTaskInput,
   type UpdateTaskStatusInput,
 } from '@repo/shared';
 import { TasksService } from './tasks.service';
@@ -26,6 +28,12 @@ export class TasksController {
   updateStatus(@Param('id') id: string, @Body() body: unknown) {
     const input: UpdateTaskStatusInput = updateTaskStatusSchema.parse(body);
     return this.tasksService.updateStatus(id, input.status);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() body: unknown) {
+    const input: UpdateTaskInput = updateTaskSchema.parse(body);
+    return this.tasksService.update(id, input);
   }
 
   @Delete(':id')

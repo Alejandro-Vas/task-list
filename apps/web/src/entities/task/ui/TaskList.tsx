@@ -1,5 +1,6 @@
 import { ChangeStatusButton } from '@/features/change-status';
 import { DeleteTaskButton } from '@/features/delete-task';
+import { EditTaskButton } from '@/features/edit-task';
 import type { Task } from '../model/types';
 
 type TaskListProps = {
@@ -18,7 +19,7 @@ export function TaskList(props: TaskListProps) {
       {tasks.map((task) => (
         <li key={task.id} className="task-list__item">
           <ChangeStatusButton taskId={task.id} status={task.status} />
-          <span className="task-list__title">{task.title}</span>
+          <EditTaskButton taskId={task.id} title={task.title} />
           {task.description ? (
             <span className="task-list__description">{task.description}</span>
           ) : null}

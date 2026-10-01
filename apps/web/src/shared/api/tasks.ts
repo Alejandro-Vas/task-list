@@ -1,4 +1,9 @@
-import type { CreateTaskInput, Task, TaskStatus } from '@repo/shared';
+import type {
+  CreateTaskInput,
+  Task,
+  TaskStatus,
+  UpdateTaskInput,
+} from '@repo/shared';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
@@ -34,6 +39,24 @@ export async function deleteTask(id: string): Promise<void> {
   if (!response.ok) {
     throw new Error(`Failed to delete task: ${response.status}`);
   }
+}
+
+export async function updateTask(
+  id: string,
+  input: UpdateTaskInput,
+): Promise<Task> {
+  const response = await fetch(`${API_URL}/api/tasks/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+
+  if (!response.ok) {
+    const message = await response.json().catch(() => null);
+    throw new Error(message?.message ?? `Failed to update task: ${response.status}`);
+  }
+
+  return response.json() as Promise<Task>;
 }
 
 export async function updateTaskStatus(
