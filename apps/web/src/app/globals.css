@@ -189,3 +189,29 @@ body {
   font-size: 12px;
   white-space: nowrap;
 }
+
+.status-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.status-tabs__tab {
+  padding: 8px 14px;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.status-tabs__tab:hover {
+  color: #1c1d21;
+}
+
+.status-tabs__tab--active {
+  border-bottom-color: #2563eb;
+  color: #2563eb;
+}

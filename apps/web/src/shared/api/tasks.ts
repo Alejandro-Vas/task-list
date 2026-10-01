@@ -1,14 +1,20 @@
 import type {
   CreateTaskInput,
   Task,
+  TaskFilter,
   TaskStatus,
   UpdateTaskInput,
 } from '@repo/shared';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
-export async function fetchTasks(): Promise<Task[]> {
-  const response = await fetch(`${API_URL}/api/tasks`, { cache: 'no-store' });
+export async function fetchTasks(
+  status: TaskFilter = 'ALL',
+): Promise<Task[]> {
+  const query = status === 'ALL' ? '' : `?status=${status}`;
+  const response = await fetch(`${API_URL}/api/tasks${query}`, {
+    cache: 'no-store',
+  });
 
   if (!response.ok) {
     throw new Error(`Failed to load tasks: ${response.status}`);
