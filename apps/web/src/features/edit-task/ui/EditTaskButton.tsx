@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { updateTask } from '@/shared/api/tasks';
+import { useRefresh } from '@/shared/lib/refresh-context';
 
 type EditTaskButtonProps = {
   taskId: string;
@@ -11,7 +11,7 @@ type EditTaskButtonProps = {
 
 export function EditTaskButton(props: EditTaskButtonProps) {
   const { taskId, title } = props;
-  const router = useRouter();
+  const { refresh } = useRefresh();
 
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState(title);
@@ -42,7 +42,7 @@ export function EditTaskButton(props: EditTaskButtonProps) {
     try {
       await updateTask(taskId, { title: trimmed });
       setIsEditing(false);
-      router.refresh();
+      refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save');
     } finally {
