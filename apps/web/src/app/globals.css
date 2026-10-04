@@ -48,9 +48,36 @@ body {
 .create-task__input {
   flex: 1;
   padding: 10px 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #9ca3af;
   border-radius: 8px;
+  background: transparent;
+  color: inherit;
   font-size: 14px;
+}
+
+.create-task__input:focus {
+  border-color: #2563eb;
+  outline: none;
+}
+
+.create-task__date {
+  padding: 10px 12px;
+  border: 1px solid #9ca3af;
+  border-radius: 8px;
+  background: transparent;
+  color-scheme: light;
+  color: inherit;
+  font-size: 14px;
+}
+
+.create-task__date:focus {
+  border-color: #2563eb;
+  outline: none;
+}
+
+.create-task__input:disabled,
+.create-task__date:disabled {
+  opacity: 0.6;
 }
 
 .create-task__button {
@@ -138,6 +165,59 @@ body {
 .task-list__description {
   color: #6b7280;
   font-size: 13px;
+}
+
+.task-list__due {
+  padding: 2px 6px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #4b5563;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.task-list__due:hover {
+  background: #f3f4f6;
+}
+
+.task-list__due--overdue {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.task-list__due-add {
+  padding: 2px 6px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #9ca3af;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.task-list__due-add:hover {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.task-list__date-input {
+  padding: 4px 8px;
+  border: 1px solid #9ca3af;
+  border-radius: 6px;
+  background: transparent;
+  color-scheme: light;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+}
+
+.task-list__date-input:focus {
+  border-color: #2563eb;
+  background: #fff;
+  outline: none;
 }
 
 .task-list__delete {

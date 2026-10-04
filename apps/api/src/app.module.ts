@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
+import { AuthModule } from './auth/auth.module';
 import { HealthController } from './health/health.controller';
 import { PrismaModule } from './prisma/prisma.module';
 import { TasksModule } from './tasks/tasks.module';
@@ -15,6 +16,7 @@ import { TasksModule } from './tasks/tasks.module';
       },
     }),
     PrismaModule,
+    AuthModule,
     TasksModule,
   ],
   controllers: [HealthController],
