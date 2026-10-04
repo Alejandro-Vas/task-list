@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import { AuthProvider } from '@/features/auth';
+import { RefreshProvider } from '@/shared/lib/refresh-context';
 import './globals.css';
 
 export const metadata = {
@@ -15,7 +17,11 @@ export default function RootLayout(props: RootLayoutProps) {
 
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <AuthProvider>
+          <RefreshProvider>{children}</RefreshProvider>
+        </AuthProvider>
+      </body>
     </html>
   );
 }

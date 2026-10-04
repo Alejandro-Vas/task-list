@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { deleteTask } from '@/shared/api/tasks';
+import { useRefresh } from '@/shared/lib/refresh-context';
 
 type DeleteTaskButtonProps = {
   taskId: string;
@@ -10,7 +10,7 @@ type DeleteTaskButtonProps = {
 
 export function DeleteTaskButton(props: DeleteTaskButtonProps) {
   const { taskId } = props;
-  const router = useRouter();
+  const { refresh } = useRefresh();
   const [isDeleting, setIsDeleting] = useState(false);
 
   async function handleClick() {
@@ -18,7 +18,7 @@ export function DeleteTaskButton(props: DeleteTaskButtonProps) {
 
     try {
       await deleteTask(taskId);
-      router.refresh()
+      refresh();
     } catch {
       setIsDeleting(false);
     }

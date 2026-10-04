@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { updateTaskDueDate } from '@/shared/api/tasks';
+import { useRefresh } from '@/shared/lib/refresh-context';
 
 type EditDueDateButtonProps = {
   taskId: string;
@@ -29,7 +29,7 @@ function toLabel(dueDate: string): string {
 
 export function EditDueDateButton(props: EditDueDateButtonProps) {
   const { taskId, dueDate, overdue } = props;
-  const router = useRouter();
+  const { refresh } = useRefresh();
   const [isEditing, setIsEditing] = useState(false);
 
   async function save(next: string) {
@@ -40,7 +40,7 @@ export function EditDueDateButton(props: EditDueDateButtonProps) {
       );
     } finally {
       setIsEditing(false);
-      router.refresh();
+      refresh();
     }
   }
 
