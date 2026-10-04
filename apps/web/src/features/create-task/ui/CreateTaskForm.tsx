@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
 import { createTask } from '@/shared/api/tasks';
+import { useRefresh } from '@/shared/lib/refresh-context';
 
 export function CreateTaskForm() {
-  const router = useRouter();
+  const { refresh } = useRefresh();
   const [title, setTitle] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,7 +28,7 @@ export function CreateTaskForm() {
       });
       setTitle('');
       setDueDate('');
-      router.refresh();
+      refresh();
     } catch (submitError) {
       setError(
         submitError instanceof Error ? submitError.message : 'Unknown error',

@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { updateTaskStatus } from '@/shared/api/tasks';
+import { useRefresh } from '@/shared/lib/refresh-context';
 import type { TaskStatus } from '@/entities/task';
 
 const NEXT_STATUS: Record<TaskStatus, TaskStatus> = {
@@ -18,7 +18,7 @@ type ChangeStatusButtonProps = {
 
 export function ChangeStatusButton(props: ChangeStatusButtonProps) {
   const { taskId, status } = props;
-  const router = useRouter();
+  const { refresh } = useRefresh();
   const [optimisticStatus, setOptimisticStatus] = useState(status);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -34,7 +34,7 @@ export function ChangeStatusButton(props: ChangeStatusButtonProps) {
 
     try {
       await updateTaskStatus(taskId, nextStatus);
-      router.refresh();
+      refresh();
     } catch {
       setOptimisticStatus(status);
     } finally {

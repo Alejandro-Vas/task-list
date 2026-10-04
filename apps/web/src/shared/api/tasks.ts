@@ -5,109 +5,69 @@ import type {
   TaskStatus,
   UpdateTaskInput,
 } from '@repo/shared';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+import { authedFetch, readJson } from './client';
 
 export async function fetchTasks(
   status: TaskFilter = 'ALL',
 ): Promise<Task[]> {
   const query = status === 'ALL' ? '' : `?status=${status}`;
-  const response = await fetch(`${API_URL}/api/tasks${query}`, {
-    cache: 'no-store',
-  });
+  const response = await authedFetch(`/api/tasks${query}`);
 
-  if (!response.ok) {
-    throw new Error(`Failed to load tasks: ${response.status}`);
-  }
-
-  return response.json() as Promise<Task[]>;
+  return readJson<Task[]>(response);
 }
 
 export async function fetchOverdueCount(): Promise<number> {
-  const response = await fetch(`${API_URL}/api/tasks/overdue/count`, {
-    cache: 'no-store',
-  });
+  const response = await authedFetch('/api/tasks/overdue/count');
+  const data = await readJson<{ count: number }>(response);
 
-  if (!response.ok) {
-    throw new Error(`Failed to load overdue count: ${response.status}`);
-  }
-
-  const data = (await response.json()) as { count: number };
   return data.count;
 }
 
 export async function createTask(input: CreateTaskInput): Promise<Task> {
-  const response = await fetch(`${API_URL}/api/tasks`, {
+  const response = await authedFetch('/api/tasks', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   });
 
-  if (!response.ok) {
-    throw new Error(`Failed to create task: ${response.status}`);
-  }
-
-  return response.json() as Promise<Task>;
+  return readJson<Task>(response);
 }
 
 export async function deleteTask(id: string): Promise<void> {
-  const response = await fetch(`${API_URL}/api/tasks/${id}`, {
-    method: 'DELETE',
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to delete task: ${response.status}`);
-  }
+  await authedFetch(`/api/tasks/${id}`, { method: 'DELETE' });
 }
 
 export async function updateTask(
   id: string,
   input: UpdateTaskInput,
 ): Promise<Task> {
-  const response = await fetch(`${API_URL}/api/tasks/${id}`, {
+  const response = await authedFetch(`/api/tasks/${id}`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   });
 
-  if (!response.ok) {
-    const message = await response.json().catch(() => null);
-    throw new Error(message?.message ?? `Failed to update task: ${response.status}`);
-  }
-
-  return response.json() as Promise<Task>;
+  return readJson<Task>(response);
 }
 
 export async function updateTaskDueDate(
   id: string,
   dueDate: string | null,
 ): Promise<Task> {
-  const response = await fetch(`${API_URL}/api/tasks/${id}/due-date`, {
+  const response = await authedFetch(`/api/tasks/${id}/due-date`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ dueDate }),
   });
 
-  if (!response.ok) {
-    throw new Error(`Failed to update due date: ${response.status}`);
-  }
-
-  return response.json() as Promise<Task>;
+  return readJson<Task>(response);
 }
 
 export async function updateTaskStatus(
   id: string,
   status: TaskStatus,
 ): Promise<Task> {
-  const response = await fetch(`${API_URL}/api/tasks/${id}/status`, {
+  const response = await authedFetch(`/api/tasks/${id}/status`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ status }),
   });
 
-  if (!response.ok) {
-    throw new Error(`Failed to update task status: ${response.status}`);
-  }
-
-  return response.json() as Promise<Task>;
+  return readJson<Task>(response);
 }
