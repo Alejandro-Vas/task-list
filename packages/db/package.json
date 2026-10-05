@@ -18,7 +18,7 @@
     "studio": "prisma studio",
     "build": "prisma generate && tsc -p tsconfig.json",
     "dev": "tsc -w -p tsconfig.json",
-    "lint": "echo \"no lint yet\""
+    "lint": "eslint ."
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.0",
