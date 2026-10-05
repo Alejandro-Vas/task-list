@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { updateTask } from '@/shared/api/tasks';
-import { useRefresh } from '@/shared/lib/refresh-context';
+import { useUpdateTask } from '@/entities/task';
 
 type EditTaskButtonProps = {
   taskId: string;
@@ -11,19 +10,19 @@ type EditTaskButtonProps = {
 
 export function EditTaskButton(props: EditTaskButtonProps) {
   const { taskId, title } = props;
-  const { refresh } = useRefresh();
+  const updateTask = useUpdateTask();
 
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState(title);
   const [error, setError] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
+  const isSaving = updateTask.isPending;
 
   function handleChange(next: string) {
     setValue(next);
     setError(null);
   }
 
-  async function save() {
+  function save() {
     const trimmed = value.trim();
 
     if (trimmed.length === 0) {
@@ -36,18 +35,15 @@ export function EditTaskButton(props: EditTaskButtonProps) {
       return;
     }
 
-    setIsSaving(true);
     setError(null);
 
-    try {
-      await updateTask(taskId, { title: trimmed });
-      setIsEditing(false);
-      refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save');
-    } finally {
-      setIsSaving(false);
-    }
+    updateTask.mutate(
+      { id: taskId, input: { title: trimmed } },
+      {
+        onSuccess: () => setIsEditing(false),
+        onError: (err) => setError(err.message),
+      },
+    );
   }
 
   function cancel() {
