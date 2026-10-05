@@ -1,42 +1,39 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
-import { createTask } from '@/shared/api/tasks';
-import { useRefresh } from '@/shared/lib/refresh-context';
+import { useCreateTask } from '@/entities/task';
 
 export function CreateTaskForm() {
-  const { refresh } = useRefresh();
+  const {
+    mutate,
+    isPending: isSubmitting,
+    error: submitError,
+  } = useCreateTask();
   const [title, setTitle] = useState('');
   const [dueDate, setDueDate] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!title.trim()) {
       return;
     }
 
-    setIsSubmitting(true);
-    setError(null);
-
-    try {
-      await createTask({
+    mutate(
+      {
         title,
         dueDate: dueDate ? new Date(`${dueDate}T00:00:00`).toISOString() : undefined,
-      });
-      setTitle('');
-      setDueDate('');
-      refresh();
-    } catch (submitError) {
-      setError(
-        submitError instanceof Error ? submitError.message : 'Unknown error',
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
+      },
+      {
+        onSuccess: () => {
+          setTitle('');
+          setDueDate('');
+        },
+      },
+    );
   }
+
+  const error = submitError ? submitError.message : null;
 
   return (
     <form className="create-task" onSubmit={handleSubmit}>
