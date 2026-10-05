@@ -1,8 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { updateTaskStatus } from '@/shared/api/tasks';
-import { useRefresh } from '@/shared/lib/refresh-context';
+import { useChangeTaskStatus } from '@/entities/task';
 import type { TaskStatus } from '@/entities/task';
 
 const NEXT_STATUS: Record<TaskStatus, TaskStatus> = {
@@ -18,39 +16,21 @@ type ChangeStatusButtonProps = {
 
 export function ChangeStatusButton(props: ChangeStatusButtonProps) {
   const { taskId, status } = props;
-  const { refresh } = useRefresh();
-  const [optimisticStatus, setOptimisticStatus] = useState(status);
-  const [isSaving, setIsSaving] = useState(false);
+  const { mutate, isPending } = useChangeTaskStatus();
 
-  useEffect(() => {
-    setOptimisticStatus(status);
-  }, [status]);
-
-  async function handleClick() {
-    const nextStatus = NEXT_STATUS[optimisticStatus];
-
-    setOptimisticStatus(nextStatus);
-    setIsSaving(true);
-
-    try {
-      await updateTaskStatus(taskId, nextStatus);
-      refresh();
-    } catch {
-      setOptimisticStatus(status);
-    } finally {
-      setIsSaving(false);
-    }
+  function handleClick() {
+    mutate({ id: taskId, status: NEXT_STATUS[status] });
   }
 
   return (
     <button
-      className={`task-list__status task-list__status--${optimisticStatus.toLowerCase()}`}
+      className={`task-list__status task-list__status--${status.toLowerCase()}`}
       type="button"
       onClick={handleClick}
-      disabled={isSaving}
-      title={`Change status: ${optimisticStatus} → ${NEXT_STATUS[optimisticStatus]}`}
+      disabled={isPending}
+      title={`Change status: ${status} → ${NEXT_STATUS[status]}`}
     >
-      {optimisticStatus}
+      {status}
     </button>
   );
 }
