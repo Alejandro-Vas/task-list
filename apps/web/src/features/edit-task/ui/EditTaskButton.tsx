@@ -10,12 +10,11 @@ type EditTaskButtonProps = {
 
 export function EditTaskButton(props: EditTaskButtonProps) {
   const { taskId, title } = props;
-  const updateTask = useUpdateTask();
+  const { mutate, isPending: isSaving } = useUpdateTask();
 
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState(title);
   const [error, setError] = useState<string | null>(null);
-  const isSaving = updateTask.isPending;
 
   function handleChange(next: string) {
     setValue(next);
@@ -37,7 +36,7 @@ export function EditTaskButton(props: EditTaskButtonProps) {
 
     setError(null);
 
-    updateTask.mutate(
+    mutate(
       { id: taskId, input: { title: trimmed } },
       {
         onSuccess: () => setIsEditing(false),

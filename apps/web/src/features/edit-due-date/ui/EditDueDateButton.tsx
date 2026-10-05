@@ -28,11 +28,11 @@ function toLabel(dueDate: string): string {
 
 export function EditDueDateButton(props: EditDueDateButtonProps) {
   const { taskId, dueDate, overdue } = props;
-  const updateDueDate = useUpdateTaskDueDate();
+  const { mutate } = useUpdateTaskDueDate();
   const [isEditing, setIsEditing] = useState(false);
 
   function save(next: string) {
-    updateDueDate.mutate(
+    mutate(
       {
         id: taskId,
         dueDate: next ? new Date(`${next}T00:00:00`).toISOString() : null,

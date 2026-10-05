@@ -16,10 +16,10 @@ type ChangeStatusButtonProps = {
 
 export function ChangeStatusButton(props: ChangeStatusButtonProps) {
   const { taskId, status } = props;
-  const changeStatus = useChangeTaskStatus();
+  const { mutate, isPending } = useChangeTaskStatus();
 
   function handleClick() {
-    changeStatus.mutate({ id: taskId, status: NEXT_STATUS[status] });
+    mutate({ id: taskId, status: NEXT_STATUS[status] });
   }
 
   return (
@@ -27,7 +27,7 @@ export function ChangeStatusButton(props: ChangeStatusButtonProps) {
       className={`task-list__status task-list__status--${status.toLowerCase()}`}
       type="button"
       onClick={handleClick}
-      disabled={changeStatus.isPending}
+      disabled={isPending}
       title={`Change status: ${status} → ${NEXT_STATUS[status]}`}
     >
       {status}
