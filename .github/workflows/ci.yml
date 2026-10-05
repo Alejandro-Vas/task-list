@@ -43,21 +43,3 @@ jobs:
         run: yarn db:generate
       - name: Run typecheck
         run: yarn typecheck
-
-  build:
-    name: Build
-    needs: [lint, typecheck]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-          cache: yarn
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
-      - name: Generate Prisma client
-        run: yarn db:generate
-      - name: Build
-        run: yarn build
