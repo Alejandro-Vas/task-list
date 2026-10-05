@@ -40,6 +40,8 @@ jobs:
         run: yarn install --frozen-lockfile
       - name: Generate Prisma client
         run: yarn db:generate
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/task_list
       - name: Run typecheck
         run: yarn typecheck
 
@@ -56,5 +58,9 @@ jobs:
           cache: yarn
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+      - name: Generate Prisma client
+        run: yarn db:generate
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/task_list
       - name: Build
         run: yarn build
