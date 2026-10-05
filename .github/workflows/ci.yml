@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
 
+env:
+  DATABASE_URL: postgresql://ci:ci@localhost:5432/task_list
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -38,8 +41,6 @@ jobs:
         run: yarn install --frozen-lockfile
       - name: Generate Prisma client
         run: yarn db:generate
-        env:
-          DATABASE_URL: postgresql://ci:ci@localhost:5432/task_list
       - name: Run typecheck
         run: yarn typecheck
 
@@ -58,7 +59,5 @@ jobs:
         run: yarn install --frozen-lockfile
       - name: Generate Prisma client
         run: yarn db:generate
-        env:
-          DATABASE_URL: postgresql://ci:ci@localhost:5432/task_list
       - name: Build
         run: yarn build
