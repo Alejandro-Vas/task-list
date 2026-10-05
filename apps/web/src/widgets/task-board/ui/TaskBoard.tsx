@@ -47,7 +47,7 @@ export function TaskBoard() {
       ) : areTasksLoading ? (
         <p className="page__loading">Loading…</p>
       ) : (
-        <TaskList tasks={tasks} />
+        <TaskList tasks={tasks ?? []} />
       )}
     </>
   );
