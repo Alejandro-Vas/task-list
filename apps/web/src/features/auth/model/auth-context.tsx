@@ -9,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import type { AuthUser, LoginInput, RegisterInput } from '@repo/shared';
 import {
   getMe,
@@ -42,11 +43,13 @@ export function AuthProvider(props: AuthProviderProps) {
   const { children } = props;
   const [user, setUser] = useState<AuthUser | null>(null);
   const [status, setStatus] = useState<AuthStatus>('loading');
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     let isActive = true;
 
     setUnauthorizedHandler(() => {
+      queryClient.clear();
       setAccessToken(null);
       setUser(null);
       setStatus('anonymous');
@@ -89,7 +92,7 @@ export function AuthProvider(props: AuthProviderProps) {
       isActive = false;
       setUnauthorizedHandler(null);
     };
-  }, []);
+  }, [queryClient]);
 
   const login = useCallback(async (input: LoginInput) => {
     const result = await loginRequest(input);
@@ -107,10 +110,11 @@ export function AuthProvider(props: AuthProviderProps) {
 
   const logout = useCallback(async () => {
     await logoutRequest().catch(() => undefined);
+    queryClient.clear();
     setAccessToken(null);
     setUser(null);
     setStatus('anonymous');
-  }, []);
+  }, [queryClient]);
 
   const value = useMemo(
     () => ({ user, status, login, register, logout }),

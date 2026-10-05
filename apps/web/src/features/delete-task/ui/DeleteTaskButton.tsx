@@ -1,8 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { deleteTask } from '@/shared/api/tasks';
-import { useRefresh } from '@/shared/lib/refresh-context';
+import { useDeleteTask } from '@/entities/task';
 
 type DeleteTaskButtonProps = {
   taskId: string;
@@ -10,18 +8,10 @@ type DeleteTaskButtonProps = {
 
 export function DeleteTaskButton(props: DeleteTaskButtonProps) {
   const { taskId } = props;
-  const { refresh } = useRefresh();
-  const [isDeleting, setIsDeleting] = useState(false);
+  const deleteTask = useDeleteTask();
 
-  async function handleClick() {
-    setIsDeleting(true);
-
-    try {
-      await deleteTask(taskId);
-      refresh();
-    } catch {
-      setIsDeleting(false);
-    }
+  function handleClick() {
+    deleteTask.mutate(taskId);
   }
 
   return (
@@ -29,9 +19,9 @@ export function DeleteTaskButton(props: DeleteTaskButtonProps) {
       className="task-list__delete"
       type="button"
       onClick={handleClick}
-      disabled={isDeleting}
+      disabled={deleteTask.isPending}
     >
-      {isDeleting ? '...' : '✕'}
+      {deleteTask.isPending ? '...' : '✕'}
     </button>
   );
 }
