@@ -8,10 +8,10 @@ type DeleteTaskButtonProps = {
 
 export function DeleteTaskButton(props: DeleteTaskButtonProps) {
   const { taskId } = props;
-  const deleteTask = useDeleteTask();
+  const { mutate, isPending } = useDeleteTask();
 
   function handleClick() {
-    deleteTask.mutate(taskId);
+    mutate(taskId);
   }
 
   return (
@@ -19,9 +19,9 @@ export function DeleteTaskButton(props: DeleteTaskButtonProps) {
       className="task-list__delete"
       type="button"
       onClick={handleClick}
-      disabled={deleteTask.isPending}
+      disabled={isPending}
     >
-      {deleteTask.isPending ? '...' : '✕'}
+      {isPending ? '...' : '✕'}
     </button>
   );
 }

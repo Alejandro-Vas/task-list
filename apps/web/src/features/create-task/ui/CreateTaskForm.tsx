@@ -4,7 +4,11 @@ import { useState, type FormEvent } from 'react';
 import { useCreateTask } from '@/entities/task';
 
 export function CreateTaskForm() {
-  const createTask = useCreateTask();
+  const {
+    mutate,
+    isPending: isSubmitting,
+    error: submitError,
+  } = useCreateTask();
   const [title, setTitle] = useState('');
   const [dueDate, setDueDate] = useState('');
 
@@ -15,7 +19,7 @@ export function CreateTaskForm() {
       return;
     }
 
-    createTask.mutate(
+    mutate(
       {
         title,
         dueDate: dueDate ? new Date(`${dueDate}T00:00:00`).toISOString() : undefined,
@@ -29,8 +33,7 @@ export function CreateTaskForm() {
     );
   }
 
-  const isSubmitting = createTask.isPending;
-  const error = createTask.error ? createTask.error.message : null;
+  const error = submitError ? submitError.message : null;
 
   return (
     <form className="create-task" onSubmit={handleSubmit}>

@@ -12,9 +12,13 @@ export function TaskBoard() {
   const parsed = taskFilterSchema.safeParse(searchParams.get('status') ?? 'ALL');
   const status: TaskFilter = parsed.success ? parsed.data : 'ALL';
 
-  const tasksQuery = useTasksQuery(status);
-  const overdueQuery = useOverdueCountQuery();
-  const overdueCount = overdueQuery.data ?? null;
+  const {
+    data: tasks,
+    error: tasksError,
+    isPending: areTasksLoading,
+  } = useTasksQuery(status);
+  const { data: overdueData } = useOverdueCountQuery();
+  const overdueCount = overdueData ?? null;
 
   return (
     <>
@@ -36,14 +40,14 @@ export function TaskBoard() {
 
       <StatusTabs active={status} />
 
-      {tasksQuery.error ? (
+      {tasksError ? (
         <p className="page__error">
-          Could not load tasks: {tasksQuery.error.message}
+          Could not load tasks: {tasksError.message}
         </p>
-      ) : tasksQuery.isPending ? (
+      ) : areTasksLoading ? (
         <p className="page__loading">Loading…</p>
       ) : (
-        <TaskList tasks={tasksQuery.data} />
+        <TaskList tasks={tasks} />
       )}
     </>
   );
