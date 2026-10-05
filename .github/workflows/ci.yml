@@ -2,7 +2,9 @@ name: CI
 
 on:
   push:
+    branches-ignore: [main]
   pull_request:
+    branches: [main]
 
 env:
   DATABASE_URL: postgresql://ci:ci@localhost:5432/task_list
