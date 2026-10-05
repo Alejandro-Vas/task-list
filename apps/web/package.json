@@ -6,7 +6,7 @@
     "build": "next build",
     "dev": "next dev --port 3000",
     "start": "next start --port 3000",
-    "lint": "echo \"no lint yet\""
+    "lint": "eslint ."
   },
   "dependencies": {
     "@repo/shared": "0.0.0",

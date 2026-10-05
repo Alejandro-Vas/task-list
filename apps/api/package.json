@@ -6,7 +6,7 @@
     "build": "nest build",
     "dev": "nest start --watch",
     "start": "node dist/main.js",
-    "lint": "echo \"no lint yet\""
+    "lint": "eslint ."
   },
   "dependencies": {
     "@nestjs/bullmq": "12.0.0",

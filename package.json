@@ -18,8 +18,11 @@
     "setup": "yarn db:up && yarn db:generate && yarn db:migrate && yarn db:seed"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.12.0",
     "turbo": "2.11.6",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "typescript-eslint": "^8.71.1"
   },
   "packageManager": "yarn@1.22.22",
   "engines": {
