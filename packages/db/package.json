@@ -18,7 +18,8 @@
     "studio": "prisma studio",
     "build": "prisma generate && tsc -p tsconfig.json",
     "dev": "tsc -w -p tsconfig.json",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.0",
