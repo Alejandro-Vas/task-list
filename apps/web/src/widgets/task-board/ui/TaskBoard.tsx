@@ -24,7 +24,7 @@ export function TaskBoard() {
             Task List
             {overdueCount !== null && overdueCount > 0 ? (
               <span className="page__overdue-badge">
-                просрочено {overdueCount}
+                overdue {overdueCount}
               </span>
             ) : null}
           </h1>
