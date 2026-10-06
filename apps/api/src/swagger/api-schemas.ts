@@ -124,7 +124,7 @@ export class UpdateTaskDueDateBody implements UpdateTaskDueDateInput {
     type: 'string',
     format: 'date-time',
     nullable: true,
-    description: 'null — очистить дату.',
+    description: 'null — clear date.',
   })
   dueDate!: string | null;
 }
