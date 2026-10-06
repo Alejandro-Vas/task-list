@@ -115,6 +115,15 @@ curl -X POST http://localhost:4000/api/tasks \
    отзывают его в БД.
 4. Все задачи привязаны к пользователю — API отдаёт только задачи текущего `userId`.
 
+**Rate limiting:**
+
+1. Глобальный `ThrottlerGuard` (`@nestjs/throttler`) ограничивает все эндпоинты
+   (по умолчанию `THROTTLE_LIMIT` запросов за `THROTTLE_TTL` мс на IP).
+2. Эндпоинты `/api/auth/login|register|refresh` имеют более строгий лимит
+   (`THROTTLE_AUTH_LIMIT` за `THROTTLE_AUTH_TTL`) — защита от брутфорса пароля.
+3. Счётчики хранятся в Redis (`RedisThrottlerStorage` на `ioredis`), поэтому лимит
+   общий для всех инстансов API. При превышении отдаётся `429` и заголовок `Retry-After`.
+
 **Задачи и очереди:**
 
 1. `POST /api/tasks` (NestJS) создаёт задачу в Postgres через Prisma.
@@ -196,6 +205,10 @@ yarn workspace @repo/db studio   # Prisma Studio
 | `NEXT_PUBLIC_API_URL` | `http://localhost:4000` |
 | `JWT_ACCESS_SECRET` | `dev-only-insecure-secret` (только для dev) |
 | `JWT_ACCESS_TTL` | `15m` |
+| `THROTTLE_TTL` | `60000` (мс) |
+| `THROTTLE_LIMIT` | `100` запросов за TTL |
+| `THROTTLE_AUTH_TTL` | `60000` (мс) |
+| `THROTTLE_AUTH_LIMIT` | `5` запросов за TTL |
 
 В production обязательно переопределите `JWT_ACCESS_SECRET` — без него токены подписываются
 на известное dev-значение из кода.

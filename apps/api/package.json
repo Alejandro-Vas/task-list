@@ -7,7 +7,8 @@
     "dev": "nest start --watch",
     "start": "node dist/main.js",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
   },
   "dependencies": {
     "@nestjs/bullmq": "12.0.0",
@@ -17,6 +18,7 @@
     "@nestjs/jwt": "12",
     "@nestjs/platform-express": "12.1.2",
     "@nestjs/swagger": "12.0.2",
+    "@nestjs/throttler": "6.7.1",
     "@repo/db": "0.0.0",
     "@repo/shared": "0.0.0",
     "bcrypt": "6",
@@ -30,9 +32,16 @@
   "devDependencies": {
     "@nestjs/cli": "12.0.8",
     "@nestjs/schematics": "12.0.6",
+    "@nestjs/testing": "12.1.2",
+    "@swc/core": "1.16.13",
     "@types/bcrypt": "6",
     "@types/cookie-parser": "1.4.9",
     "@types/express": "5.0.6",
-    "@types/node": "^22.20.0"
+    "@types/node": "^22.20.0",
+    "@types/supertest": "7.2.1",
+    "supertest": "7.3.1",
+    "unplugin-swc": "2.0.0",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
   }
 }
