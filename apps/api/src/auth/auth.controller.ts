@@ -8,8 +8,22 @@ import {
   Req,
   Res,
 } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import { loginSchema, registerSchema } from '@repo/shared';
 import type { CookieOptions, Request, Response } from 'express';
+import {
+  AuthResponse,
+  AuthUser as AuthUserSchema,
+  LoginBody,
+  RefreshResponse,
+  RegisterBody,
+} from '../swagger/api-schemas';
 import { REFRESH_TTL_DAYS, AuthService } from './auth.service';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { Public } from './decorators/public.decorator';
@@ -25,14 +39,18 @@ const refreshCookieOptions: CookieOptions = {
   maxAge: REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000,
 };
 
+@ApiTags('auth')
+@ApiBearerAuth('bearer')
+@ApiUnauthorizedResponse({ description: 'Missing or expired access token' })
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
   @Post('register')
+  @ApiCreatedResponse({ type: AuthResponse })
   async register(
-    @Body() body: unknown,
+    @Body() body: RegisterBody,
     @Res({ passthrough: true }) res: Response,
   ) {
     const parsed = registerSchema.safeParse(body);
@@ -50,7 +68,11 @@ export class AuthController {
   @Public()
   @Post('login')
   @HttpCode(200)
-  async login(@Body() body: unknown, @Res({ passthrough: true }) res: Response) {
+  @ApiOkResponse({ type: AuthResponse })
+  async login(
+    @Body() body: LoginBody,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const parsed = loginSchema.safeParse(body);
 
     if (!parsed.success) {
@@ -66,6 +88,7 @@ export class AuthController {
   @Public()
   @Post('refresh')
   @HttpCode(200)
+  @ApiOkResponse({ type: RefreshResponse })
   async refresh(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
@@ -100,6 +123,7 @@ export class AuthController {
   }
 
   @Get('me')
+  @ApiOkResponse({ type: AuthUserSchema })
   me(@CurrentUser() user: AuthUser) {
     return this.authService.me(user.userId);
   }
