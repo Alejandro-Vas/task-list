@@ -43,3 +43,19 @@ jobs:
         run: yarn db:generate
       - name: Run typecheck
         run: yarn typecheck
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      - name: Generate Prisma client
+        run: yarn db:generate
+      - name: Run tests
+        run: yarn test
