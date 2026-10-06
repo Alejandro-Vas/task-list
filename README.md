@@ -12,18 +12,19 @@ Fullstack TypeScript-монорепозиторий: Next.js + NestJS + Prisma +
 | БД | PostgreSQL 16 + Prisma 7 (driver adapter `@prisma/adapter-pg`) |
 | Очереди | BullMQ 6 + Redis 7 |
 | Валидация | Zod 4 (общие схемы в `packages/shared`) |
+| Аутентификация | @nestjs/jwt (access-токен) + bcrypt, refresh-токены в БД |
 
 ## Структура
 
 ```
 task-list/
 ├── apps/
-│   ├── web/       # Next.js: RSC-страница со списком задач и формой создания
-│   ├── api/       # NestJS: REST API, Prisma, постановка задач в BullMQ
+│   ├── web/       # Next.js: клиентское приложение с авторизацией (FSD: app/entities/features/widgets)
+│   ├── api/       # NestJS: REST API, JWT-аутентификация, Prisma, BullMQ, Swagger
 │   └── worker/    # BullMQ-воркер: обработка фоновых задач
 ├── packages/
-│   ├── db/        # Prisma schema, миграции, seed, клиент с pg-адаптером
-│   └── shared/    # Общие Zod-схемы, типы задач и имя очереди
+│   ├── db/        # Prisma schema (User, Project, Task, RefreshToken), миграции, seed
+│   └── shared/    # Общие Zod-схемы: задачи, регистрация/логин, имя очереди
 ├── docker-compose.yml
 └── turbo.json
 ```
@@ -73,13 +74,24 @@ yarn setup
 
 ## Проверка, что всё живо
 
+Все эндпоинты задач защищены JWT (кроме `/api/health` и `/api/auth/*`).
+После `yarn db:seed` есть демо-пользователь: `demo@example.com` / `demo1234`.
+
 ```bash
 curl http://localhost:4000/api/health
-curl http://localhost:4000/api/tasks
+
+# Получить access-токен
+TOKEN=*** -s -X POST http://localhost:4000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"demo@example.com","password":"***"}' | sed 's/.*"accessToken":"***"]*\)".*/\1/')
+
+# Список задач
+curl http://localhost:4000/api/tasks -H "Authorization: Bearer $TOKEN"
 
 # Создание задачи -> попадает в очередь -> воркер обрабатывает и логирует
 curl -X POST http://localhost:4000/api/tasks \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
   -d '{"title":"Проверка очереди"}'
 ```
 
@@ -92,12 +104,71 @@ curl -X POST http://localhost:4000/api/tasks \
 
 ## Как это работает
 
+**Аутентификация:**
+
+1. `POST /api/auth/register|login` выдаёт access-токен JWT (15 минут) в теле ответа,
+   а refresh-токен (7 дней) кладёт в httpOnly-cookie `refresh_token` (path `/api/auth`)
+   и сохраняет его хеш в таблице `RefreshToken`.
+2. Глобальный `JwtAuthGuard` (через `APP_GUARD`) требует `Authorization: Bearer <token>`
+   на всех эндпоинтах, кроме помеченных `@Public` (`/api/auth/*`, health).
+3. `POST /api/auth/refresh` ротацирует refresh-токен по cookie; `logout`/`logout-all`
+   отзывают его в БД.
+4. Все задачи привязаны к пользователю — API отдаёт только задачи текущего `userId`.
+
+**Задачи и очереди:**
+
 1. `POST /api/tasks` (NestJS) создаёт задачу в Postgres через Prisma.
 2. `TasksService` кладёт джобу `task_assigned` в очередь `notifications` (BullMQ).
 3. Отдельный процесс `apps/worker` забирает джобу, валидирует её Zod-схемой из `@repo/shared`
    и логирует результат (заглушка вместо реального email).
-4. Страница `apps/web` — серверный компонент: тянет список задач с API и рендерит его,
-   форма создания — клиентский компонент, после успеха вызывает `router.refresh()`.
+
+**Веб:**
+
+- Клиентское приложение: `AuthProvider` хранит access-токен в памяти,
+  при 401 автоматически обновляет его через `/api/auth/refresh`.
+- Страницы `/login` и `/register`, защищённые задачи — через `RequireAuth`.
+- Список задач, фильтры по статусу, создание/редактирование/удаление —
+  клиентские фичи из `src/features`.
+
+## Swagger
+
+Документация API: **http://localhost:4000/api/docs** (доступна только не в production;
+JSON-схема — `/api/docs/json`).
+
+Как пользоваться с авторизацией:
+
+1. Поднять БД и запустить API (`yarn db:up` + `yarn dev`, либо `yarn setup`).
+2. Открыть http://localhost:4000/api/docs.
+3. Раскрыть `POST /api/auth/login` -> `Try it out` -> выполнить с демо-парой
+   `demo@example.com` / `demo1234` -> скопировать `accessToken` из ответа.
+4. Нажать `Authorize` (справа сверху), вставить токен в Bearer-поле, `Authorize`.
+   Токен сохраняется между запросами (`persistAuthorization`).
+5. Эндпоинты `auth/*` и `health` помечены как публичные — токен для них не нужен.
+
+## База локально и обзор данных
+
+Postgres и Redis поднимаются в Docker (порты сдвинуты, чтобы не конфликтовать
+с локальными инстансами). Для быстрого обзора таблиц есть Prisma Studio.
+
+```bash
+# 1. Поднять контейнеры (Postgres :5433, Redis :6380)
+yarn db:up
+
+# 2. Применить миграции и залить демо-данные (нужен доступ к БД)
+yarn db:generate
+yarn db:migrate
+yarn db:seed
+
+# 3. Открыть графический обзор БД в браузере
+yarn workspace @repo/db studio
+```
+
+Studio поднимается на http://localhost:5555 и показывает таблицы
+`User`, `Project`, `Task`, `RefreshToken` — их можно смотреть, фильтровать
+и править прямо в браузере (изменения сразу пишутся в Postgres).
+
+Остановить контейнеры: `yarn db:down` (данные остаются в docker-томах;
+полностью стереть — `yarn db:down -v`).
 
 ## Полезные команды
 
@@ -123,6 +194,11 @@ yarn workspace @repo/db studio   # Prisma Studio
 | `REDIS_PORT` | `6380` |
 | `API_PORT` | `4000` |
 | `NEXT_PUBLIC_API_URL` | `http://localhost:4000` |
+| `JWT_ACCESS_SECRET` | `dev-only-insecure-secret` (только для dev) |
+| `JWT_ACCESS_TTL` | `15m` |
+
+В production обязательно переопределите `JWT_ACCESS_SECRET` — без него токены подписываются
+на известное dev-значение из кода.
 
 ## Что можно добавить дальше
 
