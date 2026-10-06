@@ -6,6 +6,7 @@ import { NestFactory } from '@nestjs/core';
 import cookieParser from 'cookie-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { CORS_ORIGINS } from './security/csrf.config';
 
 const SWAGGER_PATH = 'docs';
 
@@ -42,7 +43,7 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
   app.use(cookieParser());
-  app.enableCors({ origin: true, credentials: true });
+  app.enableCors({ origin: CORS_ORIGINS, credentials: true });
 
   if (process.env.NODE_ENV !== 'production') {
     setupSwagger(app);
