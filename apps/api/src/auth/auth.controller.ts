@@ -40,8 +40,6 @@ const refreshCookieOptions: CookieOptions = {
 };
 
 @ApiTags('auth')
-@ApiBearerAuth('bearer')
-@ApiUnauthorizedResponse({ description: 'Missing or expired access token' })
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -114,6 +112,8 @@ export class AuthController {
 
   @Post('logout-all')
   @HttpCode(204)
+  @ApiBearerAuth('bearer')
+  @ApiUnauthorizedResponse({ description: 'Missing or expired access token' })
   async logoutAll(
     @CurrentUser() user: AuthUser,
     @Res({ passthrough: true }) res: Response,
@@ -124,6 +124,8 @@ export class AuthController {
 
   @Get('me')
   @ApiOkResponse({ type: AuthUserSchema })
+  @ApiBearerAuth('bearer')
+  @ApiUnauthorizedResponse({ description: 'Missing or expired access token' })
   me(@CurrentUser() user: AuthUser) {
     return this.authService.me(user.userId);
   }
