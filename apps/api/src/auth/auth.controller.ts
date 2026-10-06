@@ -36,10 +36,14 @@ import type { AuthUser } from './types/authenticated-request.type';
 
 const REFRESH_COOKIE = 'refresh_token';
 
+const COOKIE_SECURE = process.env.COOKIE_SECURE
+  ? process.env.COOKIE_SECURE === 'true'
+  : process.env.NODE_ENV === 'production';
+
 const refreshCookieOptions: CookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax',
+  secure: COOKIE_SECURE,
+  sameSite: (process.env.COOKIE_SAME_SITE ?? 'lax') as CookieOptions['sameSite'],
   path: '/api/auth',
   maxAge: REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000,
 };

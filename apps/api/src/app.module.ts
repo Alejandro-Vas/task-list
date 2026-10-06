@@ -6,6 +6,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
 import { HealthController } from './health/health.controller';
 import { PrismaModule } from './prisma/prisma.module';
+import { CsrfOriginGuard } from './security/csrf-origin.guard';
 import { TasksModule } from './tasks/tasks.module';
 import { AppThrottlerModule } from './throttler/throttler.module';
 
@@ -24,6 +25,9 @@ import { AppThrottlerModule } from './throttler/throttler.module';
     TasksModule,
   ],
   controllers: [HealthController],
-  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
+  providers: [
+    { provide: APP_GUARD, useClass: CsrfOriginGuard },
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+  ],
 })
 export class AppModule {}

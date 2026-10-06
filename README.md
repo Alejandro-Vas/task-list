@@ -124,6 +124,16 @@ curl -X POST http://localhost:4000/api/tasks \
 3. Счётчики хранятся в Redis (`RedisThrottlerStorage` на `ioredis`), поэтому лимит
    общий для всех инстансов API. При превышении отдаётся `429` и заголовок `Retry-After`.
 
+**CSRF:**
+
+1. Глобальный `CsrfOriginGuard` проверяет изменяющие запросы (`POST`/`PUT`/`PATCH`/`DELETE`):
+   заголовок `Origin` (или `Referer` как fallback) должен входить в allowlist `CORS_ORIGIN`.
+2. Безопасные методы (`GET`/`HEAD`/`OPTIONS`) пропускаются, запросы без `Origin`/`Referer`
+   (curl, мобильные, server-to-server) тоже — они не подвержены CSRF.
+3. CORS настроен на тот же allowlist (`origin: CORS_ORIGIN`), а не на `origin: true`.
+4. Cookie `refresh_token` настраивается через `COOKIE_SAME_SITE`/`COOKIE_SECURE`;
+   в production рекомендуется `SameSite=strict` и `Secure`.
+
 **Задачи и очереди:**
 
 1. `POST /api/tasks` (NestJS) создаёт задачу в Postgres через Prisma.
@@ -209,9 +219,13 @@ yarn workspace @repo/db studio   # Prisma Studio
 | `THROTTLE_LIMIT` | `100` запросов за TTL |
 | `THROTTLE_AUTH_TTL` | `60000` (мс) |
 | `THROTTLE_AUTH_LIMIT` | `5` запросов за TTL |
+| `CORS_ORIGIN` | `http://localhost:3000` (origin'ы через запятую) |
+| `COOKIE_SAME_SITE` | `lax` (`strict` в production) |
+| `COOKIE_SECURE` | `false` (в production `true`) |
 
 В production обязательно переопределите `JWT_ACCESS_SECRET` — без него токены подписываются
-на известное dev-значение из кода.
+на известное dev-значение из кода. Также задайте `CORS_ORIGIN` со своими доменами и
+`COOKIE_SAME_SITE=strict`, `COOKIE_SECURE=true`.
 
 ## Что можно добавить дальше
 
