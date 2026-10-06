@@ -12,10 +12,10 @@ import type {
 export const TASK_STATUSES = ['TODO', 'IN_PROGRESS', 'DONE'] as const;
 
 /**
- * Swagger-схемы выведены из реальных типов `@repo/shared`: `implements` даёт
- * ошибку компиляции, если поле появится или исчезнет в общей схеме, так что
- * спека не разъезжается с кодом. Примеры не заданы — Nest подставляет их из
- * типов автоматически.
+ * Swagger schemas are derived from the real `@repo/shared` types: `implements`
+ * fails compilation when a field is added or removed in the shared schema, so
+ * the spec cannot drift from the code. Examples are omitted on purpose — Nest
+ * generates them from the types automatically.
  */
 export class Task implements SharedTask {
   @ApiProperty()
@@ -32,6 +32,9 @@ export class Task implements SharedTask {
 
   @ApiProperty({ type: 'string', nullable: true })
   assigneeId!: string | null;
+
+  @ApiProperty()
+  ownerId!: string;
 
   @ApiProperty({ type: 'string', nullable: true })
   projectId!: string | null;
@@ -82,13 +85,13 @@ export class AuthResponse {
 
   @ApiProperty({
     description:
-      'JWT access token (15 мин). Refresh token ставится в httpOnly cookie `refresh_token`.',
+      'JWT access token (15 min). Refresh token is set in the httpOnly cookie `refresh_token`.',
   })
   accessToken!: string;
 }
 
 export class RefreshResponse {
-  @ApiProperty({ description: 'Новый access token, cookie ротируется.' })
+  @ApiProperty({ description: 'New access token; the refresh cookie is rotated.' })
   accessToken!: string;
 }
 

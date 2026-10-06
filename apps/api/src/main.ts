@@ -1,6 +1,7 @@
 import './load-env';
 
 import 'reflect-metadata';
+import { INestApplication } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import cookieParser from 'cookie-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -8,7 +9,7 @@ import { AppModule } from './app.module';
 
 const SWAGGER_PATH = 'docs';
 
-function setupSwagger(app: Awaited<ReturnType<typeof NestFactory.create>>) {
+function setupSwagger(app: INestApplication) {
   const config = new DocumentBuilder()
     .setTitle('Task List API')
     .setDescription(
