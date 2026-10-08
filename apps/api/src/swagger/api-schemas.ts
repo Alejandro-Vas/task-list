@@ -9,6 +9,8 @@ import type {
   UpdateTaskStatusInput,
 } from '@repo/shared';
 
+import { USER_ROLES } from '@repo/shared';
+
 export const TASK_STATUSES = ['TODO', 'IN_PROGRESS', 'DONE'] as const;
 
 /**
@@ -58,6 +60,9 @@ export class AuthUser implements SharedAuthUser {
 
   @ApiProperty()
   name!: string;
+
+  @ApiProperty({ enum: USER_ROLES })
+  role!: SharedAuthUser['role'];
 }
 
 export class LoginBody {
