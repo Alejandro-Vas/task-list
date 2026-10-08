@@ -6,7 +6,12 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { compare, hash } from 'bcrypt';
 import { createHash, randomBytes } from 'node:crypto';
-import type { AuthUser, LoginInput, RegisterInput } from '@repo/shared';
+import type {
+  AuthUser,
+  LoginInput,
+  RegisterInput,
+  UserRole,
+} from '@repo/shared';
 import { PrismaService } from '../prisma/prisma.service';
 
 export const ACCESS_TOKEN_TTL = '15m';
@@ -46,7 +51,7 @@ export class AuthService {
 
     return {
       user: this.toAuthUser(user),
-      tokens: await this.issueTokens(user.id, user.email),
+      tokens: await this.issueTokens(user),
     };
   }
 
@@ -61,7 +66,7 @@ export class AuthService {
 
     return {
       user: this.toAuthUser(user),
-      tokens: await this.issueTokens(user.id, user.email),
+      tokens: await this.issueTokens(user),
     };
   }
 
@@ -91,7 +96,7 @@ export class AuthService {
       data: { revokedAt: new Date() },
     });
 
-    return { tokens: await this.issueTokens(user.id, user.email) };
+    return { tokens: await this.issueTokens(user) };
   }
 
   async logout(refreshToken?: string) {
@@ -124,15 +129,27 @@ export class AuthService {
     return this.toAuthUser(user);
   }
 
-  private async issueTokens(userId: string, email: string): Promise<AuthTokens> {
-    const accessToken = await this.jwtService.signAsync({ sub: userId, email });
+  private async issueTokens(user: {
+    id: string;
+    email: string;
+    role: UserRole;
+  }): Promise<AuthTokens> {
+    const accessToken = await this.jwtService.signAsync({
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    });
     const refreshToken = randomBytes(REFRESH_TOKEN_BYTES).toString('hex');
     const expiresAt = new Date(
       Date.now() + REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000,
     );
 
     await this.prisma.client.refreshToken.create({
-      data: { tokenHash: this.hashToken(refreshToken), userId, expiresAt },
+      data: {
+        tokenHash: this.hashToken(refreshToken),
+        userId: user.id,
+        expiresAt,
+      },
     });
 
     return { accessToken, refreshToken };
@@ -146,7 +163,13 @@ export class AuthService {
     id: string;
     email: string;
     name: string;
+    role: UserRole;
   }): AuthUser {
-    return { id: user.id, email: user.email, name: user.name };
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    };
   }
 }
