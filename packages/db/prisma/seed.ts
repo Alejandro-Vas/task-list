@@ -16,7 +16,12 @@ async function main() {
   const passwordHash = await bcrypt.hash('demo1234', 10);
 
   const user = await prisma.user.create({
-    data: { email: 'demo@example.com', name: 'Demo User', passwordHash },
+    data: {
+      email: 'demo@example.com',
+      name: 'Demo User',
+      passwordHash,
+      role: 'OWNER',
+    },
   });
 
   const project = await prisma.project.create({

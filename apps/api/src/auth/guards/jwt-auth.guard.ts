@@ -6,6 +6,8 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
+import type { UserRole } from '@repo/shared';
+import { PrismaService } from '../../prisma/prisma.service';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import type {
   AuthenticatedRequest,
@@ -15,6 +17,7 @@ import type {
 type AccessTokenPayload = {
   sub: string;
   email: string;
+  role?: UserRole;
 };
 
 @Injectable()
@@ -22,6 +25,7 @@ export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly reflector: Reflector,
+    private readonly prisma: PrismaService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -41,14 +45,29 @@ export class JwtAuthGuard implements CanActivate {
       throw new UnauthorizedException('Missing access token');
     }
 
+    let payload: AccessTokenPayload;
+
     try {
-      const payload =
-        await this.jwtService.verifyAsync<AccessTokenPayload>(token);
-      const user: AuthUser = { userId: payload.sub, email: payload.email };
-      request.user = user;
+      payload = await this.jwtService.verifyAsync<AccessTokenPayload>(token);
     } catch {
       throw new UnauthorizedException('Invalid or expired access token');
     }
+
+    const user = await this.prisma.client.user.findUnique({
+      where: { id: payload.sub },
+      select: { id: true, email: true, role: true },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const authUser: AuthUser = {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    };
+    request.user = authUser;
 
     return true;
   }
