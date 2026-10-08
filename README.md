@@ -110,10 +110,41 @@ curl -X POST http://localhost:4000/api/tasks \
    а refresh-токен (7 дней) кладёт в httpOnly-cookie `refresh_token` (path `/api/auth`)
    и сохраняет его хеш в таблице `RefreshToken`.
 2. Глобальный `JwtAuthGuard` (через `APP_GUARD`) требует `Authorization: Bearer <token>`
-   на всех эндпоинтах, кроме помеченных `@Public` (`/api/auth/*`, health).
+   на всех эндпоинтах, кроме помеченных `@Public` (`/api/auth/*`, health). Роль
+   пользователя перечитывается из БД на каждый запрос, поэтому снятие роли
+   применяется сразу, без ожидания истечения токена.
 3. `POST /api/auth/refresh` ротацирует refresh-токен по cookie; `logout`/`logout-all`
    отзывают его в БД.
 4. Все задачи привязаны к пользователю — API отдаёт только задачи текущего `userId`.
+
+**Роли и доступ (RBAC):**
+
+1. У пользователя есть роль `UserRole` (`OWNER` > `ADMIN` > `USER`), по умолчанию `USER`.
+2. Декоратор `@Roles('OWNER', 'ADMIN')` на методе или контроллере требует, чтобы роль
+   из токена входила в список.
+3. Глобальный `RolesGuard` стоит после `JwtAuthGuard`: эндпоинты без `@Roles` доступны
+   всем аутентифицированным, при нехватке роли отдаётся `403`.
+4. Права проверяются только на сервере — скрытие разделов в UI считается косметикой.
+5. Роль выдаётся вручную через БД/`psql`, повышений через API нет.
+
+**Rate limiting:**
+
+1. Глобальный `ThrottlerGuard` (`@nestjs/throttler`) ограничивает все эндпоинты
+   (по умолчанию `THROTTLE_LIMIT` запросов за `THROTTLE_TTL` мс на IP).
+2. Эндпоинты `/api/auth/login|register|refresh` имеют более строгий лимит
+   (`THROTTLE_AUTH_LIMIT` за `THROTTLE_AUTH_TTL`) — защита от брутфорса пароля.
+3. Счётчики хранятся в Redis (`RedisThrottlerStorage` на `ioredis`), поэтому лимит
+   общий для всех инстансов API. При превышении отдаётся `429` и заголовок `Retry-After`.
+
+**CSRF:**
+
+1. Глобальный `CsrfOriginGuard` проверяет изменяющие запросы (`POST`/`PUT`/`PATCH`/`DELETE`):
+   заголовок `Origin` (или `Referer` как fallback) должен входить в allowlist `CORS_ORIGIN`.
+2. Безопасные методы (`GET`/`HEAD`/`OPTIONS`) пропускаются, запросы без `Origin`/`Referer`
+   (curl, мобильные, server-to-server) тоже — они не подвержены CSRF.
+3. CORS настроен на тот же allowlist (`origin: CORS_ORIGIN`), а не на `origin: true`.
+4. Cookie `refresh_token` настраивается через `COOKIE_SAME_SITE`/`COOKIE_SECURE`;
+   в production рекомендуется `SameSite=strict` и `Secure`.
 
 **Задачи и очереди:**
 
@@ -196,9 +227,17 @@ yarn workspace @repo/db studio   # Prisma Studio
 | `NEXT_PUBLIC_API_URL` | `http://localhost:4000` |
 | `JWT_ACCESS_SECRET` | `dev-only-insecure-secret` (только для dev) |
 | `JWT_ACCESS_TTL` | `15m` |
+| `THROTTLE_TTL` | `60000` (мс) |
+| `THROTTLE_LIMIT` | `100` запросов за TTL |
+| `THROTTLE_AUTH_TTL` | `60000` (мс) |
+| `THROTTLE_AUTH_LIMIT` | `5` запросов за TTL |
+| `CORS_ORIGIN` | `http://localhost:3000` (origin'ы через запятую) |
+| `COOKIE_SAME_SITE` | `lax` (`strict` в production) |
+| `COOKIE_SECURE` | `false` (в production `true`) |
 
 В production обязательно переопределите `JWT_ACCESS_SECRET` — без него токены подписываются
-на известное dev-значение из кода.
+на известное dev-значение из кода. Также задайте `CORS_ORIGIN` со своими доменами и
+`COOKIE_SAME_SITE=strict`, `COOKIE_SECURE=true`.
 
 ## Что можно добавить дальше
 

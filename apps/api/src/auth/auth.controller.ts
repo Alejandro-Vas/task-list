@@ -15,6 +15,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { loginSchema, registerSchema } from '@repo/shared';
 import type { CookieOptions, Request, Response } from 'express';
 import {
@@ -24,6 +25,10 @@ import {
   RefreshResponse,
   RegisterBody,
 } from '../swagger/api-schemas';
+import {
+  THROTTLE_AUTH_LIMIT,
+  THROTTLE_AUTH_TTL,
+} from '../throttler/throttler.config';
 import { REFRESH_TTL_DAYS, AuthService } from './auth.service';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { Public } from './decorators/public.decorator';
@@ -31,10 +36,14 @@ import type { AuthUser } from './types/authenticated-request.type';
 
 const REFRESH_COOKIE = 'refresh_token';
 
+const COOKIE_SECURE = process.env.COOKIE_SECURE
+  ? process.env.COOKIE_SECURE === 'true'
+  : process.env.NODE_ENV === 'production';
+
 const refreshCookieOptions: CookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax',
+  secure: COOKIE_SECURE,
+  sameSite: (process.env.COOKIE_SAME_SITE ?? 'lax') as CookieOptions['sameSite'],
   path: '/api/auth',
   maxAge: REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000,
 };
@@ -45,6 +54,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
+  @Throttle({ default: { limit: THROTTLE_AUTH_LIMIT, ttl: THROTTLE_AUTH_TTL } })
   @Post('register')
   @ApiCreatedResponse({ type: AuthResponse })
   async register(
@@ -64,6 +74,7 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { limit: THROTTLE_AUTH_LIMIT, ttl: THROTTLE_AUTH_TTL } })
   @Post('login')
   @HttpCode(200)
   @ApiOkResponse({ type: AuthResponse })
@@ -84,6 +95,7 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { limit: THROTTLE_AUTH_LIMIT, ttl: THROTTLE_AUTH_TTL } })
   @Post('refresh')
   @HttpCode(200)
   @ApiOkResponse({ type: RefreshResponse })

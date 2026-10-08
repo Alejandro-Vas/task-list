@@ -13,6 +13,7 @@ model User {
   email         String         @unique
   name          String
   passwordHash  String
+  role          UserRole       @default(USER)
   tasks         Task[]         @relation("TaskAssignee")
   ownedTasks    Task[]         @relation("TaskOwner")
   projects      Project[]
@@ -68,4 +69,10 @@ enum TaskStatus {
   TODO
   IN_PROGRESS
   DONE
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  USER
 }
