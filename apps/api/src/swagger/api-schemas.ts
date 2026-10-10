@@ -84,6 +84,14 @@ export class RegisterBody {
   password!: string;
 }
 
+export class ChangePasswordBody {
+  @ApiProperty()
+  currentPassword!: string;
+
+  @ApiProperty()
+  newPassword!: string;
+}
+
 export class AuthResponse {
   @ApiProperty({ type: AuthUser })
   user!: AuthUser;
