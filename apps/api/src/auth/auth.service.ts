@@ -8,6 +8,7 @@ import { compare, hash } from 'bcrypt';
 import { createHash, randomBytes } from 'node:crypto';
 import type {
   AuthUser,
+  ChangePasswordInput,
   LoginInput,
   RegisterInput,
   UserRole,
@@ -108,6 +109,29 @@ export class AuthService {
       where: { tokenHash: this.hashToken(refreshToken), revokedAt: null },
       data: { revokedAt: new Date() },
     });
+  }
+
+  async changePassword(userId: string, input: ChangePasswordInput) {
+    const user = await this.prisma.client.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    if (!(await compare(input.currentPassword, user.passwordHash))) {
+      throw new UnauthorizedException('Invalid password');
+    }
+
+    await this.prisma.client.user.update({
+      where: { id: userId },
+      data: {
+        passwordHash: await hash(input.newPassword, PASSWORD_SALT_ROUNDS),
+      },
+    });
+
+    await this.logoutAll(userId);
   }
 
   async logoutAll(userId: string) {
