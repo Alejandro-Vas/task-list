@@ -1,6 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { taskFilterSchema, type TaskFilter } from '@repo/shared';
 import { TaskList, useOverdueCountQuery, useTasksQuery } from '@/entities/task';
 import { LogoutButton } from '@/features/auth';
@@ -32,7 +33,12 @@ export function TaskBoard() {
               </span>
             ) : null}
           </h1>
-          <LogoutButton />
+          <div className="page__nav">
+            <Link href="/settings" className="page__nav-link">
+              Settings
+            </Link>
+            <LogoutButton />
+          </div>
         </div>
       </header>
 

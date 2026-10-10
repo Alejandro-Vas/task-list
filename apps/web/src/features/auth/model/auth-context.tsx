@@ -10,8 +10,14 @@ import {
   type ReactNode,
 } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import type { AuthUser, LoginInput, RegisterInput } from '@repo/shared';
+import type {
+  AuthUser,
+  ChangePasswordInput,
+  LoginInput,
+  RegisterInput,
+} from '@repo/shared';
 import {
+  changePassword as changePasswordRequest,
   getMe,
   login as loginRequest,
   logout as logoutRequest,
@@ -31,6 +37,7 @@ type AuthContextValue = {
   login: (input: LoginInput) => Promise<void>;
   register: (input: RegisterInput) => Promise<void>;
   logout: () => Promise<void>;
+  changePassword: (input: ChangePasswordInput) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -116,9 +123,20 @@ export function AuthProvider(props: AuthProviderProps) {
     setStatus('anonymous');
   }, [queryClient]);
 
+  const changePassword = useCallback(
+    async (input: ChangePasswordInput) => {
+      await changePasswordRequest(input);
+      queryClient.clear();
+      setAccessToken(null);
+      setUser(null);
+      setStatus('anonymous');
+    },
+    [queryClient],
+  );
+
   const value = useMemo(
-    () => ({ user, status, login, register, logout }),
-    [user, status, login, register, logout],
+    () => ({ user, status, login, register, logout, changePassword }),
+    [user, status, login, register, logout, changePassword],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
