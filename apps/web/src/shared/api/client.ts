@@ -119,3 +119,9 @@ export async function readJson<T>(response: Response): Promise<T> {
 
   return response.json() as Promise<T>;
 }
+
+export async function readVoid(response: Response): Promise<void> {
+  if (!response.ok) {
+    throw new ApiError(response.status, await extractErrorMessage(response));
+  }
+}

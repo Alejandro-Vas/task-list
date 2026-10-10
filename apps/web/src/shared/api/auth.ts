@@ -1,10 +1,11 @@
 import type {
   AuthResponse,
   AuthUser,
+  ChangePasswordInput,
   LoginInput,
   RegisterInput,
 } from '@repo/shared';
-import { authedFetch, readJson } from './client';
+import { authedFetch, readJson, readVoid } from './client';
 
 export function register(input: RegisterInput): Promise<AuthResponse> {
   return authedFetch('/api/auth/register', {
@@ -33,4 +34,11 @@ export async function logout(): Promise<void> {
     method: 'POST',
     skipAuthRefresh: true,
   });
+}
+
+export function changePassword(input: ChangePasswordInput): Promise<void> {
+  return authedFetch('/api/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  }).then((response) => readVoid(response));
 }

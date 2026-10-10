@@ -16,11 +16,12 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { loginSchema, registerSchema } from '@repo/shared';
+import { changePasswordSchema, loginSchema, registerSchema } from '@repo/shared';
 import type { CookieOptions, Request, Response } from 'express';
 import {
   AuthResponse,
   AuthUser as AuthUserSchema,
+  ChangePasswordBody,
   LoginBody,
   RefreshResponse,
   RegisterBody,
@@ -132,6 +133,24 @@ export class AuthController {
   ) {
     await this.authService.logoutAll(user.userId);
     res.clearCookie(REFRESH_COOKIE, { path: refreshCookieOptions.path });
+  }
+
+  @Post('change-password')
+  @HttpCode(204)
+  @Throttle({ default: { limit: THROTTLE_AUTH_LIMIT, ttl: THROTTLE_AUTH_TTL } })
+  @ApiBearerAuth('bearer')
+  @ApiUnauthorizedResponse({ description: 'Invalid current password' })
+  async changePassword(
+    @CurrentUser() user: AuthUser,
+    @Body() body: ChangePasswordBody,
+  ) {
+    const parsed = changePasswordSchema.safeParse(body);
+
+    if (!parsed.success) {
+      throw new BadRequestException('Invalid password data');
+    }
+
+    await this.authService.changePassword(user.userId, parsed.data);
   }
 
   @Get('me')

@@ -307,6 +307,26 @@ body {
   color: #6b7280;
 }
 
+.page__nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.page__nav-link {
+  padding: 6px 12px;
+  border: 1px solid #9ca3af;
+  border-radius: 8px;
+  color: inherit;
+  font-size: 13px;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.page__nav-link:hover {
+  background: #f3f4f6;
+}
+
 .page__overdue-badge {
   margin-left: 12px;
   padding: 2px 10px;

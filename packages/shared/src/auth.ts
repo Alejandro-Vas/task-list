@@ -13,6 +13,17 @@ export const loginSchema = z.object({
 });
 export type LoginInput = z.infer<typeof loginSchema>;
 
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1).max(72),
+    newPassword: z.string().min(8).max(72),
+  })
+  .refine((data) => data.newPassword !== data.currentPassword, {
+    message: 'New password must differ from the current one',
+    path: ['newPassword'],
+  });
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+
 export const USER_ROLES = ['OWNER', 'ADMIN', 'USER'] as const;
 export const userRoleSchema = z.enum(USER_ROLES);
 export type UserRole = z.infer<typeof userRoleSchema>;
