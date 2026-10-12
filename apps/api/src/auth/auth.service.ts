@@ -65,6 +65,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
+    if (user.isBlocked) {
+      throw new UnauthorizedException('Account is blocked');
+    }
+
     return {
       user: this.toAuthUser(user),
       tokens: await this.issueTokens(user),
@@ -88,7 +92,7 @@ export class AuthService {
       where: { id: stored.userId },
     });
 
-    if (!user) {
+    if (!user || user.isBlocked) {
       throw new UnauthorizedException('Invalid refresh token');
     }
 

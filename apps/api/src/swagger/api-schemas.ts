@@ -1,15 +1,20 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import type {
+  AdminLogItem as SharedAdminLogItem,
+  AdminStats as SharedAdminStats,
+  AdminUser as SharedAdminUser,
   AuthUser as SharedAuthUser,
   CreateTaskInput,
   Task as SharedTask,
   TaskStatus,
+  UpdateAdminUserInput,
   UpdateTaskDueDateInput,
   UpdateTaskInput,
   UpdateTaskStatusInput,
+  UpdateUserRoleInput,
 } from '@repo/shared';
 
-import { USER_ROLES } from '@repo/shared';
+import { ADMIN_ACTIONS, USER_ROLES } from '@repo/shared';
 
 export const TASK_STATUSES = ['TODO', 'IN_PROGRESS', 'DONE'] as const;
 
@@ -153,4 +158,143 @@ export class Health {
 
   @ApiProperty({ type: 'string', format: 'date-time' })
   timestamp!: string;
+}
+
+export class AdminUser implements SharedAdminUser {
+  @ApiProperty()
+  id!: string;
+
+  @ApiProperty()
+  email!: string;
+
+  @ApiProperty()
+  name!: string;
+
+  @ApiProperty({ enum: USER_ROLES })
+  role!: SharedAdminUser['role'];
+
+  @ApiProperty()
+  isBlocked!: boolean;
+
+  @ApiProperty({ type: 'string', format: 'date-time' })
+  createdAt!: string;
+
+  @ApiProperty({
+    type: 'integer',
+    description: 'Tasks owned by the user.',
+  })
+  tasksCount!: number;
+
+  @ApiProperty({ type: 'integer' })
+  projectsCount!: number;
+}
+
+export class PaginatedAdminUsers {
+  @ApiProperty({ type: [AdminUser] })
+  items!: AdminUser[];
+
+  @ApiProperty({ type: 'integer' })
+  total!: number;
+
+  @ApiProperty({ type: 'integer' })
+  page!: number;
+
+  @ApiProperty({ type: 'integer' })
+  perPage!: number;
+}
+
+export class UpdateUserRoleBody implements UpdateUserRoleInput {
+  @ApiProperty({ enum: USER_ROLES })
+  role!: UpdateUserRoleInput['role'];
+}
+
+export class UpdateAdminUserBody implements UpdateAdminUserInput {
+  @ApiPropertyOptional()
+  name?: string;
+
+  @ApiPropertyOptional()
+  email?: string;
+}
+
+export class AdminUsersByRole {
+  @ApiProperty({ type: 'integer' })
+  OWNER!: number;
+
+  @ApiProperty({ type: 'integer' })
+  ADMIN!: number;
+
+  @ApiProperty({ type: 'integer' })
+  USER!: number;
+}
+
+export class AdminStats implements SharedAdminStats {
+  @ApiProperty({ type: 'integer' })
+  usersTotal!: number;
+
+  @ApiProperty({ type: AdminUsersByRole })
+  usersByRole!: AdminUsersByRole;
+
+  @ApiProperty({ type: 'integer' })
+  tasksTotal!: number;
+
+  @ApiProperty({ type: 'integer' })
+  tasksOverdue!: number;
+
+  @ApiProperty({ type: 'integer' })
+  projectsTotal!: number;
+
+  @ApiProperty({ type: [AdminUser] })
+  recentUsers!: AdminUser[];
+}
+
+export class AdminLogItem implements SharedAdminLogItem {
+  @ApiProperty()
+  id!: string;
+
+  @ApiProperty()
+  actorId!: string;
+
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+    description: 'null — the actor was deleted.',
+  })
+  actorName!: string | null;
+
+  @ApiProperty({ type: 'string', nullable: true })
+  targetId!: string | null;
+
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+    description: 'null — the target was deleted.',
+  })
+  targetName!: string | null;
+
+  @ApiProperty({ enum: ADMIN_ACTIONS })
+  action!: SharedAdminLogItem['action'];
+
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: true,
+    nullable: true,
+  })
+  meta!: SharedAdminLogItem['meta'];
+
+  @ApiProperty({ type: 'string', format: 'date-time' })
+  createdAt!: string;
+}
+
+export class PaginatedAdminLogs {
+  @ApiProperty({ type: [AdminLogItem] })
+  items!: AdminLogItem[];
+
+  @ApiProperty({ type: 'integer' })
+  total!: number;
+
+  @ApiProperty({ type: 'integer' })
+  page!: number;
+
+  @ApiProperty({ type: 'integer' })
+  perPage!: number;
 }

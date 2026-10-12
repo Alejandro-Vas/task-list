@@ -2,6 +2,8 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from './generated/prisma/client';
 
 export type { PrismaClient } from './generated/prisma/client';
+export type { AdminActionLog } from './generated/prisma/client';
+export { Prisma } from './generated/prisma/client';
 export { TaskStatus } from './generated/prisma/enums';
 
 export function createPrismaClient(): PrismaClient {

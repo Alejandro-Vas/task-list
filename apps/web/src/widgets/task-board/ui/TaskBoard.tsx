@@ -4,14 +4,16 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { taskFilterSchema, type TaskFilter } from '@repo/shared';
 import { TaskList, useOverdueCountQuery, useTasksQuery } from '@/entities/task';
-import { LogoutButton } from '@/features/auth';
+import { LogoutButton, useAuth } from '@/features/auth';
 import { CreateTaskForm } from '@/features/create-task';
 import { StatusTabs } from '@/features/filter-status';
+import { isAdminRole } from '@/shared/lib/role-hierarchy';
 
 export function TaskBoard() {
   const searchParams = useSearchParams();
   const parsed = taskFilterSchema.safeParse(searchParams.get('status') ?? 'ALL');
   const status: TaskFilter = parsed.success ? parsed.data : 'ALL';
+  const { user } = useAuth();
 
   const {
     data: tasks,
@@ -34,6 +36,11 @@ export function TaskBoard() {
             ) : null}
           </h1>
           <div className="page__nav">
+            {user !== null && isAdminRole(user.role) ? (
+              <Link href="/admin" className="page__nav-link">
+                Admin
+              </Link>
+            ) : null}
             <Link href="/settings" className="page__nav-link">
               Settings
             </Link>
