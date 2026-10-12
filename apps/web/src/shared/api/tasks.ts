@@ -5,7 +5,7 @@ import type {
   TaskStatus,
   UpdateTaskInput,
 } from '@repo/shared';
-import { authedFetch, readJson } from './client';
+import { authedFetch, readBlob, readJson } from './client';
 
 export async function fetchTasks(
   status: TaskFilter = 'ALL',
@@ -81,4 +81,10 @@ export async function updateTaskStatus(
   });
 
   return readJson<Task>(response);
+}
+
+export async function fetchTasksCsv(): Promise<Blob> {
+  const response = await authedFetch('/api/tasks/export/csv');
+
+  return readBlob(response);
 }

@@ -16,6 +16,16 @@ import {
   type UpdateTaskInput,
 } from '@repo/shared';
 import { PrismaService } from '../prisma/prisma.service';
+import { toCsv } from './csv';
+
+const CSV_HEADERS = [
+  'id',
+  'title',
+  'description',
+  'status',
+  'dueDate',
+  'createdAt',
+] as const;
 
 @Injectable()
 export class TasksService {
@@ -35,6 +45,23 @@ export class TasksService {
       },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  /** Every task of the user, serialized as CSV. Status filters are ignored on purpose. */
+  async exportCsv(userId: string): Promise<string> {
+    const tasks = await this.findAll(userId);
+
+    return toCsv(
+      CSV_HEADERS,
+      tasks.map((task) => [
+        task.id,
+        task.title,
+        task.description,
+        task.status,
+        task.dueDate,
+        task.createdAt,
+      ]),
+    );
   }
 
   countOverdue(userId: string) {

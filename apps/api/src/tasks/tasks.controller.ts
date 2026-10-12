@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   Query,
+  StreamableFile,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -69,6 +70,23 @@ export class TasksController {
     return this.tasksService
       .countOverdue(user.userId)
       .then((count) => ({ count }));
+  }
+
+  @Get('export/csv')
+  @ApiOkResponse({
+    description:
+      'Every task of the current user as a UTF-8 CSV file (BOM + CRLF, RFC 4180 quoting).',
+    content: { 'text/csv': { schema: { type: 'string', format: 'binary' } } },
+  })
+  async exportCsv(@CurrentUser() user: AuthUser) {
+    const csv = await this.tasksService.exportCsv(user.userId);
+
+    return new StreamableFile(Buffer.from(csv, 'utf-8'), {
+      type: 'text/csv; charset=utf-8',
+      disposition: `attachment; filename="tasks-${new Date()
+        .toISOString()
+        .slice(0, 10)}.csv"`,
+    });
   }
 
   @Post()
