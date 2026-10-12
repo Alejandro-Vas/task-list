@@ -32,8 +32,19 @@ export async function createTask(input: CreateTaskInput): Promise<Task> {
   return readJson<Task>(response);
 }
 
-export async function deleteTask(id: string): Promise<void> {
-  await authedFetch(`/api/tasks/${id}`, { method: 'DELETE' });
+/** Schedules the deletion; the task stays in the list until the worker removes it. */
+export async function deleteTask(id: string): Promise<Task> {
+  const response = await authedFetch(`/api/tasks/${id}`, { method: 'DELETE' });
+
+  return readJson<Task>(response);
+}
+
+export async function undoDeleteTask(id: string): Promise<Task> {
+  const response = await authedFetch(`/api/tasks/${id}/undo-delete`, {
+    method: 'PATCH',
+  });
+
+  return readJson<Task>(response);
 }
 
 export async function updateTask(

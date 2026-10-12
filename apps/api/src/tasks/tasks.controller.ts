@@ -117,4 +117,10 @@ export class TasksController {
   delete(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     return this.tasksService.delete(user.userId, id);
   }
+
+  @Patch(':id/undo-delete')
+  @ApiOkResponse({ type: Task })
+  undoDelete(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.tasksService.undoDelete(user.userId, id);
+  }
 }

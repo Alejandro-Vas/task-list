@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@repo/db": "0.0.0",
     "@repo/shared": "0.0.0",
     "bullmq": "6.3.11",
     "dotenv": "18.0.5",
