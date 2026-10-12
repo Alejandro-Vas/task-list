@@ -55,11 +55,15 @@ export class JwtAuthGuard implements CanActivate {
 
     const user = await this.prisma.client.user.findUnique({
       where: { id: payload.sub },
-      select: { id: true, email: true, role: true },
+      select: { id: true, email: true, role: true, isBlocked: true },
     });
 
     if (!user) {
       throw new UnauthorizedException('User not found');
+    }
+
+    if (user.isBlocked) {
+      throw new UnauthorizedException('User is blocked');
     }
 
     const authUser: AuthUser = {

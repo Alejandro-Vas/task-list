@@ -14,6 +14,7 @@ model User {
   name          String
   passwordHash  String
   role          UserRole       @default(USER)
+  isBlocked     Boolean        @default(false)
   tasks         Task[]         @relation("TaskAssignee")
   ownedTasks    Task[]         @relation("TaskOwner")
   projects      Project[]
@@ -65,12 +66,24 @@ model RefreshToken {
   @@index([userId])
 }
 
+model AdminActionLog {
+  id        String   @id @default(cuid())
+  actorId   String
+  targetId  String?
+  action    String
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  @@index([actorId])
+  @@index([targetId])
+  @@index([createdAt])
+}
+
 enum TaskStatus {
   TODO
   IN_PROGRESS
   DONE
 }
-
 enum UserRole {
   OWNER
   ADMIN
