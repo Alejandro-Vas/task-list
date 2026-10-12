@@ -2,15 +2,17 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { QueryClient, QueryKey } from '@tanstack/react-query';
-import type {
-  CreateTaskInput,
-  Task,
-  TaskStatus,
-  UpdateTaskInput,
+import {
+  UNDO_DELETE_WINDOW_MS,
+  type CreateTaskInput,
+  type Task,
+  type TaskStatus,
+  type UpdateTaskInput,
 } from '@repo/shared';
 import {
   createTask,
   deleteTask,
+  undoDeleteTask,
   updateTask,
   updateTaskDueDate,
   updateTaskStatus,
@@ -21,10 +23,6 @@ type ListsSnapshot = Array<[QueryKey, Task[] | undefined]>;
 
 function patchTask(list: Task[], updated: Task): Task[] {
   return list.map((task) => (task.id === updated.id ? updated : task));
-}
-
-function removeTask(list: Task[], id: string): Task[] {
-  return list.filter((task) => task.id !== id);
 }
 
 function prependTask(list: Task[], created: Task): Task[] {
@@ -60,6 +58,20 @@ function invalidateTasks(client: QueryClient): void {
   client.invalidateQueries({ queryKey: taskKeys.all });
 }
 
+let refetchTimer: ReturnType<typeof setTimeout> | null = null;
+
+/** Refetch the lists once, shortly after the undo window expires. */
+function scheduleTasksRefetch(client: QueryClient, delayMs: number): void {
+  if (refetchTimer) {
+    clearTimeout(refetchTimer);
+  }
+
+  refetchTimer = setTimeout(() => {
+    refetchTimer = null;
+    invalidateTasks(client);
+  }, delayMs);
+}
+
 export function useCreateTask() {
   const client = useQueryClient();
 
@@ -89,8 +101,35 @@ export function useDeleteTask() {
 
   return useMutation({
     mutationFn: (id: string) => deleteTask(id),
-    onSuccess: (_result, id) => {
-      patchAllLists(client, (list) => removeTask(list, id));
+    onSuccess: (updated) => {
+      // Keep the task in the list but mark it as pending deletion so the UI
+      // can show an "Undo" button.
+      patchAllLists(client, (list) =>
+        list.map((task) =>
+          task.id === updated.id
+            ? { ...task, pendingDeletionAt: updated.pendingDeletionAt }
+            : task,
+        ),
+      );
+
+      // The worker removes the row a moment after the window expires; refetch
+      // then so the task disappears from the list on its own.
+      scheduleTasksRefetch(client, UNDO_DELETE_WINDOW_MS + 500);
+    },
+  });
+}
+
+export function useUndoDeleteTask() {
+  const client = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => undoDeleteTask(id),
+    onSuccess: (updated) => {
+      patchAllLists(client, (list) =>
+        list.map((task) =>
+          task.id === updated.id ? { ...task, pendingDeletionAt: null } : task,
+        ),
+      );
       invalidateTasks(client);
     },
   });

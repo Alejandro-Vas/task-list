@@ -6,6 +6,7 @@ import { taskFilterSchema, type TaskFilter } from '@repo/shared';
 import { TaskList, useOverdueCountQuery, useTasksQuery } from '@/entities/task';
 import { LogoutButton, useAuth } from '@/features/auth';
 import { CreateTaskForm } from '@/features/create-task';
+import { ExportTasksCsvButton } from '@/features/export-tasks-csv';
 import { StatusTabs } from '@/features/filter-status';
 import { isAdminRole } from '@/shared/lib/role-hierarchy';
 
@@ -44,6 +45,7 @@ export function TaskBoard() {
             <Link href="/settings" className="page__nav-link">
               Settings
             </Link>
+            <ExportTasksCsvButton />
             <LogoutButton />
           </div>
         </div>

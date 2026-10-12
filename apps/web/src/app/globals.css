@@ -243,6 +243,32 @@ body {
   cursor: default;
 }
 
+.task-list__undo {
+  margin-left: auto;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 6px;
+  background: #fee2e2;
+  color: #dc2626;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 28px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.task-list__undo:hover {
+  background: #fecaca;
+  color: #b91c1c;
+}
+
+.task-list__undo:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 .task-list__edit {
   display: flex;
   align-items: center;
@@ -356,6 +382,33 @@ body {
 .logout-button:disabled {
   opacity: 0.6;
   cursor: default;
+}
+
+.export-csv__button {
+  padding: 6px 12px;
+  border: 1px solid #9ca3af;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.export-csv__button:hover {
+  background: #f3f4f6;
+}
+
+.export-csv__button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.export-csv__error {
+  margin: 0;
+  align-self: center;
+  color: #991b1b;
+  font-size: 13px;
 }
 
 .auth-form {
