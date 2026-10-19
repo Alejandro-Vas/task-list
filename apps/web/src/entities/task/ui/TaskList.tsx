@@ -2,6 +2,7 @@ import { ChangeStatusButton } from '@/features/change-status';
 import { DeleteTaskButton } from '@/features/delete-task';
 import { EditDueDateButton } from '@/features/edit-due-date';
 import { EditTaskButton } from '@/features/edit-task';
+import { ShareButton } from '@/features/share-task';
 import { UndoDeleteButton } from '@/features/undo-delete-task';
 import type { Task } from '../model/types';
 
@@ -45,6 +46,7 @@ export function TaskList(props: TaskListProps) {
             dueDate={task.dueDate}
             overdue={isOverdue(task, startOfToday)}
           />
+          <ShareButton taskId={task.id} />
           {task.pendingDeletionAt ? (
             <UndoDeleteButton
               taskId={task.id}

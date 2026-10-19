@@ -19,6 +19,7 @@ model User {
   ownedTasks    Task[]         @relation("TaskOwner")
   projects      Project[]
   refreshTokens RefreshToken[]
+  shareTokens   ShareToken[]
   createdAt     DateTime       @default(now())
 }
 
@@ -46,6 +47,7 @@ model Task {
   project     Project?   @relation(fields: [projectId], references: [id])
   dueDate     DateTime?
   pendingDeletionAt DateTime?
+  shareTokens   ShareToken[]
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
@@ -78,6 +80,21 @@ model AdminActionLog {
   @@index([actorId])
   @@index([targetId])
   @@index([createdAt])
+}
+
+model ShareToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  taskId    String
+  task      Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([taskId])
+  @@index([userId])
 }
 
 enum TaskStatus {

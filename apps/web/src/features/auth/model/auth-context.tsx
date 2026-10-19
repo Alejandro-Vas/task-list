@@ -42,6 +42,24 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+/**
+ * Pages that are readable without a session. Restoring a session there would
+ * hit `/api/auth/refresh` with no cookie at all: the request is pointless, and
+ * the shared auth throttle (per IP, not per browser) would then answer 429 to
+ * the *logged-in* tab sitting next to it.
+ */
+const PUBLIC_ROUTE_PREFIXES = ['/s/'];
+
+function isPublicRoute(): boolean {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  return PUBLIC_ROUTE_PREFIXES.some((prefix) =>
+    window.location.pathname.startsWith(prefix),
+  );
+}
+
 type AuthProviderProps = {
   children: ReactNode;
 };
@@ -53,6 +71,11 @@ export function AuthProvider(props: AuthProviderProps) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    if (isPublicRoute()) {
+      setStatus('anonymous');
+      return;
+    }
+
     let isActive = true;
 
     setUnauthorizedHandler(() => {
@@ -63,13 +86,13 @@ export function AuthProvider(props: AuthProviderProps) {
     });
 
     async function restoreSession() {
-      const token = await refreshAccessToken();
+      const outcome = await refreshAccessToken();
 
       if (!isActive) {
         return;
       }
 
-      if (!token) {
+      if (outcome.kind !== 'ok') {
         setStatus('anonymous');
         return;
       }

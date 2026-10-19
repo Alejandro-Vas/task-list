@@ -6,6 +6,7 @@ export {
   useChangeTaskStatus,
   useCreateTask,
   useDeleteTask,
+  useShareTask,
   useUndoDeleteTask,
   useUpdateTask,
   useUpdateTaskDueDate,

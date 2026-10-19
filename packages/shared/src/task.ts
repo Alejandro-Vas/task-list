@@ -53,3 +53,19 @@ export const findAllTasksQuerySchema = z.object({
   status: taskFilterSchema.default('ALL'),
 });
 export type FindAllTasksQuery = z.infer<typeof findAllTasksQuerySchema>;
+
+export const shareTaskResponseSchema = z.object({
+  url: z.string(),
+  expiresAt: z.string(),
+});
+export type ShareTaskResponse = z.infer<typeof shareTaskResponseSchema>;
+
+export const sharedTaskSchema = z.object({
+  title: z.string(),
+  description: z.string().nullable(),
+  status: taskStatusSchema,
+  dueDate: z.string().nullable(),
+  createdAt: z.string(),
+  ownerName: z.string(),
+});
+export type SharedTask = z.infer<typeof sharedTaskSchema>;
