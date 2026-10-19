@@ -46,16 +46,14 @@ export function TaskList(props: TaskListProps) {
             dueDate={task.dueDate}
             overdue={isOverdue(task, startOfToday)}
           />
+          <ShareButton taskId={task.id} />
           {task.pendingDeletionAt ? (
             <UndoDeleteButton
               taskId={task.id}
               pendingDeletionAt={task.pendingDeletionAt}
             />
           ) : (
-            <>
-              <ShareButton taskId={task.id} />
-              <DeleteTaskButton taskId={task.id} />
-            </>
+            <DeleteTaskButton taskId={task.id} />
           )}
         </li>
       ))}
