@@ -19,6 +19,8 @@ export const taskSchema = z.object({
   ownerId: z.string(),
   projectId: z.string().nullable(),
   dueDate: z.string().nullable(),
+  /** Set while the task waits in the deletion queue; `null` means it is safe. */
+  pendingDeletionAt: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -39,6 +41,9 @@ export const updateTaskDueDateSchema = z.object({
   dueDate: z.iso.datetime({ offset: true }).nullable(),
 });
 export type UpdateTaskDueDateInput = z.infer<typeof updateTaskDueDateSchema>;
+
+/** How long a scheduled deletion can still be undone. */
+export const UNDO_DELETE_WINDOW_MS = 5000;
 
 export const TASK_FILTERS = ['ALL', 'TODO', 'IN_PROGRESS', 'DONE'] as const;
 export const taskFilterSchema = z.enum(TASK_FILTERS);

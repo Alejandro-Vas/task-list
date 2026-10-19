@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['src/**/*.e2e-spec.ts'],
+    include: ['src/**/*.e2e-spec.ts', 'src/**/*.spec.ts'],
   },
   plugins: [
     swc.vite({

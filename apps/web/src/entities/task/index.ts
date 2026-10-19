@@ -6,6 +6,7 @@ export {
   useChangeTaskStatus,
   useCreateTask,
   useDeleteTask,
+  useUndoDeleteTask,
   useUpdateTask,
   useUpdateTaskDueDate,
 } from './api/task-mutations';

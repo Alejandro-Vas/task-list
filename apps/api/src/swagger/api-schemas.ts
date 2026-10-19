@@ -49,6 +49,9 @@ export class Task implements SharedTask {
   @ApiProperty({ type: 'string', format: 'date-time', nullable: true })
   dueDate!: string | null;
 
+  @ApiProperty({ type: 'string', format: 'date-time', nullable: true })
+  pendingDeletionAt!: string | null;
+
   @ApiProperty({ type: 'string', format: 'date-time' })
   createdAt!: string;
 

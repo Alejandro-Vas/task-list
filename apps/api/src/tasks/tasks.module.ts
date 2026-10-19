@@ -5,7 +5,10 @@ import { TasksController } from './tasks.controller';
 import { TasksService } from './tasks.service';
 
 @Module({
-  imports: [BullModule.registerQueue({ name: QUEUE_NAMES.NOTIFICATIONS })],
+  imports: [
+    BullModule.registerQueue({ name: QUEUE_NAMES.NOTIFICATIONS }),
+    BullModule.registerQueue({ name: QUEUE_NAMES.TASK_DELETION }),
+  ],
   controllers: [TasksController],
   providers: [TasksService],
 })
