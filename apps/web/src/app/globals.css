@@ -306,7 +306,8 @@ body {
   }
 
 .task-list__undo:hover {
-  background: #f3f4f6;
+  background: #fee2e2;
+  color: #b91c1c;
 }
 
 .task-list__undo:disabled {
