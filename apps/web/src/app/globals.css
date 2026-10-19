@@ -243,21 +243,46 @@ body {
   cursor: default;
 }
 
-.task-list__undo {
-  margin-left: auto;
-  min-width: 28px;
-  height: 28px;
-  padding: 0 8px;
-  border: none;
-  border-radius: 6px;
-  background: #fee2e2;
-  color: #dc2626;
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 28px;
-  cursor: pointer;
-  white-space: nowrap;
-}
+  .task-list__undo {
+    color: var(--color-green-600);
+  }
+
+  .task-list__share {
+    color: var(--color-blue-600);
+  }
+
+  .task-list__share-copied {
+    color: var(--color-green-600);
+    font-size: 0.875rem;
+  }
+
+  .shared-task {
+    max-width: 48rem;
+    margin: 0 auto;
+    padding: var(--elk-spacing-l);
+  }
+
+  .shared-task__title {
+    font-size: var(--elk-font-size-3xl);
+    margin-bottom: var(--elk-spacing-m);
+  }
+
+  .shared-task__description {
+    margin-bottom: var(--elk-spacing-l);
+    color: var(--color-gray-700);
+  }
+
+  .shared-task__meta {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: var(--elk-spacing-xs) var(--elk-spacing-l);
+    font-size: var(--elk-font-size-sm);
+  }
+
+  .shared-task__meta dt {
+    font-weight: 600;
+    color: var(--color-gray-500);
+  }
 
 .task-list__undo:hover {
   background: #fecaca;

@@ -14,9 +14,20 @@ export class ApiError extends Error {
 
 type AuthedFetchInit = RequestInit & { skipAuthRefresh?: boolean };
 
+/**
+ * `rejected` means the server explicitly refused the refresh token, so the
+ * session is really gone. `unavailable` covers 429/5xx/network: the refresh
+ * could not be judged at all, and a live session must survive that — a throttle
+ * counter is shared per IP, so a transient 429 says nothing about the token.
+ */
+type RefreshOutcome =
+  | { kind: 'ok'; token: string }
+  | { kind: 'rejected' }
+  | { kind: 'unavailable' };
+
 let accessToken: string | null = null;
 let unauthorizedHandler: (() => void) | null = null;
-let refreshPromise: Promise<string | null> | null = null;
+let refreshPromise: Promise<RefreshOutcome> | null = null;
 
 export function setAccessToken(token: string | null): void {
   accessToken = token;
@@ -26,26 +37,30 @@ export function setUnauthorizedHandler(handler: (() => void) | null): void {
   unauthorizedHandler = handler;
 }
 
-async function requestRefresh(): Promise<string | null> {
+async function requestRefresh(): Promise<RefreshOutcome> {
   try {
     const response = await fetch(`${API_URL}/api/auth/refresh`, {
       method: 'POST',
       credentials: 'include',
     });
 
+    if (response.status === 401 || response.status === 403) {
+      return { kind: 'rejected' };
+    }
+
     if (!response.ok) {
-      return null;
+      return { kind: 'unavailable' };
     }
 
     const data = (await response.json()) as Pick<AuthResponse, 'accessToken'>;
     accessToken = data.accessToken;
-    return data.accessToken;
+    return { kind: 'ok', token: data.accessToken };
   } catch {
-    return null;
+    return { kind: 'unavailable' };
   }
 }
 
-export function refreshAccessToken(): Promise<string | null> {
+export function refreshAccessToken(): Promise<RefreshOutcome> {
   if (!refreshPromise) {
     refreshPromise = requestRefresh().finally(() => {
       refreshPromise = null;
@@ -84,10 +99,13 @@ export async function authedFetch(
     return response;
   }
 
-  const token = await refreshAccessToken();
+  const outcome = await refreshAccessToken();
 
-  if (!token) {
-    unauthorizedHandler?.();
+  if (outcome.kind !== 'ok') {
+    if (outcome.kind === 'rejected') {
+      unauthorizedHandler?.();
+    }
+
     return response;
   }
 

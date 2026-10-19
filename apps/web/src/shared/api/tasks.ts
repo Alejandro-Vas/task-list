@@ -1,11 +1,15 @@
 import type {
   CreateTaskInput,
+  ShareTaskResponse,
+  SharedTask,
   Task,
   TaskFilter,
   TaskStatus,
   UpdateTaskInput,
 } from '@repo/shared';
-import { authedFetch, readBlob, readJson } from './client';
+import { ApiError, authedFetch, readBlob, readJson, readVoid } from './client';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
 export async function fetchTasks(
   status: TaskFilter = 'ALL',
@@ -87,4 +91,31 @@ export async function fetchTasksCsv(): Promise<Blob> {
   const response = await authedFetch('/api/tasks/export/csv');
 
   return readBlob(response);
+}
+
+export async function shareTask(id: string): Promise<ShareTaskResponse> {
+  const response = await authedFetch(`/api/tasks/${id}/share`, {
+    method: 'POST',
+  });
+
+  return readJson<ShareTaskResponse>(response);
+}
+
+export async function revokeShareTask(id: string): Promise<void> {
+  const response = await authedFetch(`/api/tasks/${id}/share`, {
+    method: 'DELETE',
+  });
+
+  return readVoid(response);
+}
+
+export async function fetchSharedTask(token: string): Promise<SharedTask> {
+  const response = await fetch(`${API_URL}/api/share/${token}`);
+
+  if (!response.ok) {
+    const message = await response.text().catch(() => 'Not found');
+    throw new ApiError(response.status, message);
+  }
+
+  return response.json() as Promise<SharedTask>;
 }

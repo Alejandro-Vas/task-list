@@ -12,6 +12,7 @@ import {
 import {
   createTask,
   deleteTask,
+  shareTask,
   undoDeleteTask,
   updateTask,
   updateTaskDueDate,
@@ -187,5 +188,11 @@ export function useChangeTaskStatus() {
     onSettled: () => {
       invalidateTasks(client);
     },
+  });
+}
+
+export function useShareTask() {
+  return useMutation({
+    mutationFn: shareTask,
   });
 }
