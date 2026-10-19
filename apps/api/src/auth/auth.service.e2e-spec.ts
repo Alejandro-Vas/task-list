@@ -22,19 +22,26 @@ describe('should change the password for an authenticated user', () => {
     });
     refreshTokenUpdateMany.mockResolvedValue({ count: 1 });
 
+    const client = {
+      user: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: userId,
+          email: 'demo@example.com',
+          name: 'Demo',
+          role: 'USER',
+          passwordHash: storedPasswordHash,
+        }),
+        update: userUpdate,
+      },
+      refreshToken: { updateMany: refreshTokenUpdateMany },
+    };
+
     const prisma = {
       client: {
-        user: {
-          findUnique: vi.fn().mockResolvedValue({
-            id: userId,
-            email: 'demo@example.com',
-            name: 'Demo',
-            role: 'USER',
-            passwordHash: storedPasswordHash,
-          }),
-          update: userUpdate,
-        },
-        refreshToken: { updateMany: refreshTokenUpdateMany },
+        ...client,
+        $transaction: vi.fn(
+          (callback: (tx: typeof client) => Promise<unknown>) => callback(client),
+        ),
       },
     };
 

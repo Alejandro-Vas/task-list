@@ -4,6 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { Prisma } from '@repo/db';
 import { compare, hash } from 'bcrypt';
 import { createHash, randomBytes } from 'node:crypto';
 import type {
@@ -80,28 +81,64 @@ export class AuthService {
       throw new UnauthorizedException('Missing refresh token');
     }
 
-    const stored = await this.prisma.client.refreshToken.findUnique({
-      where: { tokenHash: this.hashToken(refreshToken) },
-    });
+    const tokenHash = this.hashToken(refreshToken);
 
-    if (!stored || stored.revokedAt || stored.expiresAt < new Date()) {
-      throw new UnauthorizedException('Invalid refresh token');
+    return this.rotateRefreshToken(tokenHash);
+  }
+
+  /**
+   * Consuming the old token and issuing the successor happen in one serializable
+   * transaction: two concurrent requests cannot both rotate the same token, and
+   * `logoutAll` either wins (the refresh sees a revoked row) or loses (the new
+   * token is revoked by it).
+   */
+  private async rotateRefreshToken(
+    tokenHash: string,
+    attempt = 1,
+  ): Promise<{ tokens: AuthTokens }> {
+    try {
+      return await this.prisma.client.$transaction(
+        async (tx) => {
+          const stored = await tx.refreshToken.findUnique({
+            where: { tokenHash },
+          });
+
+          if (!stored || stored.revokedAt || stored.expiresAt < new Date()) {
+            throw new UnauthorizedException('Invalid refresh token');
+          }
+
+          const consumed = await tx.refreshToken.updateMany({
+            where: { id: stored.id, revokedAt: null },
+            data: { revokedAt: new Date() },
+          });
+
+          if (consumed.count !== 1) {
+            throw new UnauthorizedException('Invalid refresh token');
+          }
+
+          const user = await tx.user.findUnique({
+            where: { id: stored.userId },
+          });
+
+          if (!user || user.isBlocked) {
+            throw new UnauthorizedException('Invalid refresh token');
+          }
+
+          return { tokens: await this.issueTokens(user, tx) };
+        },
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      );
+    } catch (error) {
+      if (
+        attempt < 3 &&
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2034'
+      ) {
+        return this.rotateRefreshToken(tokenHash, attempt + 1);
+      }
+
+      throw error;
     }
-
-    const user = await this.prisma.client.user.findUnique({
-      where: { id: stored.userId },
-    });
-
-    if (!user || user.isBlocked) {
-      throw new UnauthorizedException('Invalid refresh token');
-    }
-
-    await this.prisma.client.refreshToken.update({
-      where: { id: stored.id },
-      data: { revokedAt: new Date() },
-    });
-
-    return { tokens: await this.issueTokens(user) };
   }
 
   async logout(refreshToken?: string) {
@@ -157,11 +194,14 @@ export class AuthService {
     return this.toAuthUser(user);
   }
 
-  private async issueTokens(user: {
-    id: string;
-    email: string;
-    role: UserRole;
-  }): Promise<AuthTokens> {
+  private async issueTokens(
+    user: {
+      id: string;
+      email: string;
+      role: UserRole;
+    },
+    client: Pick<Prisma.TransactionClient, 'refreshToken'> = this.prisma.client,
+  ): Promise<AuthTokens> {
     const accessToken = await this.jwtService.signAsync({
       sub: user.id,
       email: user.email,
@@ -172,7 +212,7 @@ export class AuthService {
       Date.now() + REFRESH_TTL_DAYS * 24 * 60 * 60 * 1000,
     );
 
-    await this.prisma.client.refreshToken.create({
+    await client.refreshToken.create({
       data: {
         tokenHash: this.hashToken(refreshToken),
         userId: user.id,

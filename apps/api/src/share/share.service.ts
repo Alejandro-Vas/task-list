@@ -58,7 +58,7 @@ export class ShareService {
       where: { tokenHash },
       include: {
         task: { select: { title: true, description: true, status: true, dueDate: true, createdAt: true, pendingDeletionAt: true } },
-        user: { select: { name: true } },
+        user: { select: { name: true, isBlocked: true } },
       },
     });
 
@@ -72,6 +72,10 @@ export class ShareService {
 
     if (share.expiresAt < new Date()) {
       throw new ForbiddenException('Share link has expired');
+    }
+
+    if (share.user.isBlocked) {
+      throw new ForbiddenException('Share link owner is blocked');
     }
 
     if (share.task.pendingDeletionAt) {

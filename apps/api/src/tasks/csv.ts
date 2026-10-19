@@ -5,6 +5,8 @@
  * Rules implemented here:
  * - a cell is quoted when it contains a comma, a double quote, CR or LF;
  * - a double quote inside a quoted cell is escaped by doubling it (`"` -> `""`);
+ * - text starting with `=`, `+`, `-`, `@`, tab or CR is prefixed with `'` so a
+ *   spreadsheet does not evaluate it as a formula;
  * - `null`/`undefined` become an empty cell, `Date` becomes an ISO string;
  * - records are separated with CRLF, which is what RFC 4180 prescribes.
  *
@@ -15,15 +17,26 @@
 const CSV_BOM = '\uFEFF';
 const CSV_RECORD_SEPARATOR = '\r\n';
 const NEEDS_QUOTING = /[",\r\n]/;
+const FORMULA_LEADING = /^[=+\-@]/;
 
 export type CsvValue = string | number | boolean | Date | null | undefined;
+
+function startsLikeFormula(text: string): boolean {
+  const firstCode = text.charCodeAt(0);
+
+  return FORMULA_LEADING.test(text) || firstCode === 0x09 || firstCode === 0x0d;
+}
 
 function stringifyCell(value: CsvValue): string {
   if (value === null || value === undefined) {
     return '';
   }
 
-  const text = value instanceof Date ? value.toISOString() : String(value);
+  const rawText = value instanceof Date ? value.toISOString() : String(value);
+  const text =
+    typeof value === 'string' && startsLikeFormula(rawText)
+      ? `'${rawText}`
+      : rawText;
 
   return NEEDS_QUOTING.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
 }

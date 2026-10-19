@@ -27,6 +27,12 @@ const CSV_HEADERS = [
   'createdAt',
 ] as const;
 
+/** Bounded history for fire-and-forget notifications. */
+const NOTIFICATION_JOB_OPTIONS = {
+  removeOnComplete: 1000,
+  removeOnFail: 5000,
+} as const;
+
 @Injectable()
 export class TasksService {
   constructor(
@@ -94,7 +100,7 @@ export class TasksService {
       message: `Task "${task.title}" was created`,
     };
 
-    await this.notificationsQueue.add('task_assigned', job);
+    await this.notificationsQueue.add('task_assigned', job, NOTIFICATION_JOB_OPTIONS);
 
     return task;
   }
@@ -126,7 +132,11 @@ export class TasksService {
         message: `Task "${updated.title}" was completed`,
       };
 
-      await this.notificationsQueue.add('task_completed', job);
+      await this.notificationsQueue.add(
+        'task_completed',
+        job,
+        NOTIFICATION_JOB_OPTIONS,
+      );
     }
 
     return updated;
@@ -162,6 +172,12 @@ export class TasksService {
   async delete(userId: string, id: string) {
     const task = await this.getTaskOrFail(userId, id);
 
+    // Idempotent: a repeated DELETE (double click, two tabs) must not move the
+    // deadline, because the queued job carries the original stamp.
+    if (task.pendingDeletionAt !== null) {
+      return task;
+    }
+
     const scheduledFor = new Date(Date.now() + UNDO_DELETE_WINDOW_MS);
 
     const updated = await this.prisma.client.task.update({
@@ -178,6 +194,8 @@ export class TasksService {
     await this.deletionQueue.add('hard-delete', job, {
       jobId: task.id,
       delay: UNDO_DELETE_WINDOW_MS,
+      attempts: 3,
+      backoff: { type: 'exponential', delay: 1000 },
       removeOnComplete: true,
       removeOnFail: false,
     });

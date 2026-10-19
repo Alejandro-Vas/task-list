@@ -123,6 +123,44 @@ function createContext() {
 
       return { ...row, _count: { ...row._count } };
     }),
+    updateMany: vi.fn(
+      async ({
+        where,
+        data,
+      }: {
+        where: { id: string; role?: UserRole };
+        data: Partial<UserRow>;
+      }) => {
+        track('user.updateMany');
+        const row = users.get(where.id);
+
+        if (!row || (where.role !== undefined && row.role !== where.role)) {
+          return { count: 0 };
+        }
+
+        for (const [key, value] of Object.entries(data)) {
+          if (value !== undefined) {
+            Object.assign(row, { [key]: value });
+          }
+        }
+
+        return { count: 1 };
+      },
+    ),
+    deleteMany: vi.fn(
+      async ({ where }: { where: { id: string; role?: UserRole } }) => {
+        track('user.deleteMany');
+        const row = users.get(where.id);
+
+        if (!row || (where.role !== undefined && row.role !== where.role)) {
+          return { count: 0 };
+        }
+
+        users.delete(where.id);
+
+        return { count: 1 };
+      },
+    ),
     delete: vi.fn(async ({ where }: { where: { id: string } }) => {
       track('user.delete');
       const row = users.get(where.id);
@@ -351,7 +389,7 @@ describe('should refuse admin actions on the actor themself', () => {
       message: 'You cannot change your own role',
     });
 
-    expect(mocks.user.update).not.toHaveBeenCalled();
+    expect(mocks.user.updateMany).not.toHaveBeenCalled();
   });
 
   it('should forbid deleting own account', async () => {
@@ -362,7 +400,7 @@ describe('should refuse admin actions on the actor themself', () => {
       service.delete(ACTOR_ADMIN, 'u-admin'),
     ).rejects.toMatchObject({ message: 'You cannot delete your own account' });
 
-    expect(mocks.user.delete).not.toHaveBeenCalled();
+    expect(mocks.user.deleteMany).not.toHaveBeenCalled();
   });
 
   it('should forbid blocking own account', async () => {
@@ -373,7 +411,7 @@ describe('should refuse admin actions on the actor themself', () => {
       service.setBlocked(ACTOR_ADMIN, 'u-admin', true),
     ).rejects.toBeInstanceOf(ForbiddenException);
 
-    expect(mocks.user.update).not.toHaveBeenCalled();
+    expect(mocks.user.updateMany).not.toHaveBeenCalled();
   });
 
   it('should forbid revoking own sessions', async () => {
@@ -411,6 +449,7 @@ describe('should change roles within the hierarchy', () => {
       where: { userId: 'u-basic', revokedAt: null },
       data: { revokedAt: expect.any(Date) },
     });
+    expect(mocks.client.$transaction).toHaveBeenCalledTimes(1);
     expect(logEntries).toEqual([
       {
         actorId: 'u-owner',
@@ -429,7 +468,7 @@ describe('should change roles within the hierarchy', () => {
       service.updateRole(ACTOR_ADMIN, 'u-basic', { role: 'ADMIN' }),
     ).rejects.toBeInstanceOf(ForbiddenException);
 
-    expect(mocks.user.update).not.toHaveBeenCalled();
+    expect(mocks.user.updateMany).not.toHaveBeenCalled();
   });
 
   it('should reject assigning the role the target already has', async () => {
@@ -451,7 +490,20 @@ describe('should change roles within the hierarchy', () => {
       service.updateRole(ACTOR_ADMIN, 'u-basic', { role: 'USER' }),
     ).rejects.toBeInstanceOf(BadRequestException);
 
-    expect(mocks.user.update).not.toHaveBeenCalled();
+    expect(mocks.user.updateMany).not.toHaveBeenCalled();
+  });
+
+  it('should refuse a change when the target role moved concurrently', async () => {
+    const { service, users, mocks, logEntries } = createContext();
+    users.set('u-basic', makeRow('u-basic', 'USER'));
+    mocks.user.updateMany.mockResolvedValueOnce({ count: 0 });
+
+    await expect(
+      service.updateRole(ACTOR_OWNER, 'u-basic', { role: 'ADMIN' }),
+    ).rejects.toBeInstanceOf(ConflictException);
+
+    expect(mocks.refreshToken.updateMany).not.toHaveBeenCalled();
+    expect(logEntries).toHaveLength(0);
   });
 });
 
@@ -465,7 +517,7 @@ describe('should edit profile fields of a manageable user', () => {
     });
 
     expect(updated.name).toBe('Renamed');
-    expect(mocks.user.update).toHaveBeenCalledWith(
+    expect(mocks.user.updateMany).toHaveBeenCalledWith(
       expect.objectContaining({ data: { name: 'Renamed', email: undefined } }),
     );
     expect(logEntries[0]).toMatchObject({ action: 'user_update' });
@@ -526,7 +578,7 @@ describe('should block and unblock a manageable user', () => {
       service.setBlocked(ACTOR_ADMIN, 'u-owner', true),
     ).rejects.toBeInstanceOf(ForbiddenException);
 
-    expect(mocks.user.update).not.toHaveBeenCalled();
+    expect(mocks.user.updateMany).not.toHaveBeenCalled();
   });
 });
 
@@ -564,7 +616,7 @@ describe('should delete a user with a full cascade', () => {
       'project.findMany',
       'task.updateMany',
       'project.deleteMany',
-      'user.delete',
+      'user.deleteMany',
       'adminActionLog.create',
     ]);
     expect(logEntries[0]).toMatchObject({
@@ -595,6 +647,6 @@ describe('should delete a user with a full cascade', () => {
       service.delete(ACTOR_ADMIN, 'u-owner'),
     ).rejects.toBeInstanceOf(ForbiddenException);
 
-    expect(mocks.user.delete).not.toHaveBeenCalled();
+    expect(mocks.user.deleteMany).not.toHaveBeenCalled();
   });
 });

@@ -17,7 +17,10 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthUser } from '../auth/types/authenticated-request.type';
 import { ShareService } from './share.service';
 
-const WEB_URL = process.env.NEXT_PUBLIC_WEB_URL ?? 'http://localhost:3000';
+const WEB_URL =
+  process.env.WEB_URL ??
+  process.env.NEXT_PUBLIC_WEB_URL ??
+  'http://localhost:3000';
 
 class SharedTaskDto {
   title!: string;

@@ -74,3 +74,41 @@ deletionWorker.on('failed', (job, error) => {
 });
 
 console.log(`[worker] listening on queue "${QUEUE_NAMES.TASK_DELETION}"`);
+
+/**
+ * Safety net for a lost queue job: a task whose undo window is over must not
+ * stay stamped forever. The sweep is idempotent and matches only past stamps.
+ */
+const DELETION_SWEEP_INTERVAL_MS = 60_000;
+
+const sweepHandle = setInterval(() => {
+  void prisma.task
+    .deleteMany({ where: { pendingDeletionAt: { lte: new Date() } } })
+    .then(({ count }) => {
+      if (count > 0) {
+        console.log(`[worker] swept ${count} overdue task deletion(s)`);
+      }
+    })
+    .catch((error: unknown) => {
+      console.error(`[worker] deletion sweep failed: ${String(error)}`);
+    });
+}, DELETION_SWEEP_INTERVAL_MS);
+
+let isShuttingDown = false;
+
+async function shutdown(signal: NodeJS.Signals): Promise<void> {
+  if (isShuttingDown) {
+    return;
+  }
+
+  isShuttingDown = true;
+  console.log(`[worker] received ${signal}, closing connections`);
+
+  clearInterval(sweepHandle);
+  await Promise.all([worker.close(), deletionWorker.close()]);
+  await prisma.$disconnect();
+  process.exit(0);
+}
+
+process.on('SIGTERM', () => void shutdown('SIGTERM'));
+process.on('SIGINT', () => void shutdown('SIGINT'));
