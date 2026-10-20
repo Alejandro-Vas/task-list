@@ -2,6 +2,7 @@
   "$schema": "https://turbo.build/schema.json",
   "globalEnv": [
     "DATABASE_URL",
+    "NODE_ENV",
     "REDIS_HOST",
     "REDIS_PORT",
     "API_PORT",

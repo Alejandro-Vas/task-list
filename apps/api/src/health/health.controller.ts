@@ -3,6 +3,7 @@ import {
   Get,
   ServiceUnavailableException,
 } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Health } from '../swagger/api-schemas';
 import { Public } from '../auth/decorators/public.decorator';
@@ -11,6 +12,7 @@ import { RedisThrottlerStorage } from '../throttler/redis-throttler.storage';
 
 @ApiTags('health')
 @Controller('health')
+@SkipThrottle()
 export class HealthController {
   constructor(
     private readonly prisma: PrismaService,
