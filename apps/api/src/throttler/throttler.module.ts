@@ -10,10 +10,11 @@ import {
   providers: [RedisThrottlerStorage],
   exports: [RedisThrottlerStorage],
 })
-class RedisThrottlerStorageModule {}
+export class RedisThrottlerStorageModule {}
 
 @Module({
   imports: [
+    RedisThrottlerStorageModule,
     ThrottlerModule.forRootAsync({
       imports: [RedisThrottlerStorageModule],
       inject: [RedisThrottlerStorage],
@@ -25,6 +26,6 @@ class RedisThrottlerStorageModule {}
       }),
     }),
   ],
-  exports: [ThrottlerModule],
+  exports: [ThrottlerModule, RedisThrottlerStorageModule],
 })
 export class AppThrottlerModule {}

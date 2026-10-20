@@ -6,6 +6,12 @@ import { createPrismaClient } from '../src';
 loadEnv({ path: resolve(process.cwd(), '../../.env') });
 
 async function main() {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'Demo seed is disabled in production: it drops every row and creates accounts with a known password.',
+    );
+  }
+
   const prisma = createPrismaClient();
 
   await prisma.refreshToken.deleteMany();

@@ -4,7 +4,7 @@ import { EditDueDateButton } from '@/features/edit-due-date';
 import { EditTaskButton } from '@/features/edit-task';
 import { ShareButton } from '@/features/share-task';
 import { UndoDeleteButton } from '@/features/undo-delete-task';
-import type { Task } from '../model/types';
+import type { Task } from '@/entities/task';
 
 type TaskListProps = {
   tasks: Task[];

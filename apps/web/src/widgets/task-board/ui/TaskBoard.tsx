@@ -3,12 +3,13 @@
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { taskFilterSchema, type TaskFilter } from '@repo/shared';
-import { TaskList, useOverdueCountQuery, useTasksQuery } from '@/entities/task';
+import { useOverdueCountQuery, useTasksQuery } from '@/entities/task';
 import { LogoutButton, useAuth } from '@/features/auth';
 import { CreateTaskForm } from '@/features/create-task';
 import { ExportTasksCsvButton } from '@/features/export-tasks-csv';
 import { StatusTabs } from '@/features/filter-status';
 import { isAdminRole } from '@/shared/lib/role-hierarchy';
+import { TaskList } from './TaskList';
 
 export function TaskBoard() {
   const searchParams = useSearchParams();

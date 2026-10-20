@@ -141,20 +141,32 @@ export class UsersAdminService {
       throw new BadRequestException('This role is already assigned');
     }
 
-    const updated = await this.prisma.client.user.update({
-      where: { id },
-      data: { role: input.role },
-      include: COUNT_INCLUDE,
-    });
+    const updated = await this.prisma.client.$transaction(async (tx) => {
+      const changed = await tx.user.updateMany({
+        where: { id, role: target.role },
+        data: { role: input.role },
+      });
 
-    // Access tokens live 15 min and carry the role, so sessions are dropped.
-    await this.revokeSessionsOf(id);
+      if (changed.count !== 1) {
+        throw new ConflictException(
+          'User role changed concurrently, retry the action',
+        );
+      }
 
-    await this.logs.write({
-      actorId: actor.userId,
-      targetId: id,
-      action: 'role_change',
-      meta: { from: target.role, to: input.role },
+      // Access tokens live 15 min and carry the role, so sessions are dropped.
+      await this.revokeSessionsOf(id, tx);
+
+      await this.logs.write(
+        {
+          actorId: actor.userId,
+          targetId: id,
+          action: 'role_change',
+          meta: { from: target.role, to: input.role },
+        },
+        tx,
+      );
+
+      return this.reloadManagedUser(tx, id);
     });
 
     return this.toAdminUser(updated);
@@ -180,20 +192,32 @@ export class UsersAdminService {
       }
     }
 
-    const updated = await this.prisma.client.user.update({
-      where: { id },
-      data: { name: input.name, email: input.email },
-      include: COUNT_INCLUDE,
-    });
+    const updated = await this.prisma.client.$transaction(async (tx) => {
+      const changed = await tx.user.updateMany({
+        where: { id, role: target.role },
+        data: { name: input.name, email: input.email },
+      });
 
-    await this.logs.write({
-      actorId: actor.userId,
-      targetId: id,
-      action: 'user_update',
-      meta: {
-        ...(input.name ? { name: input.name } : {}),
-        ...(input.email ? { email: input.email } : {}),
-      },
+      if (changed.count !== 1) {
+        throw new ConflictException(
+          'User role changed concurrently, retry the action',
+        );
+      }
+
+      await this.logs.write(
+        {
+          actorId: actor.userId,
+          targetId: id,
+          action: 'user_update',
+          meta: {
+            ...(input.name ? { name: input.name } : {}),
+            ...(input.email ? { email: input.email } : {}),
+          },
+        },
+        tx,
+      );
+
+      return this.reloadManagedUser(tx, id);
     });
 
     return this.toAdminUser(updated);
@@ -204,12 +228,30 @@ export class UsersAdminService {
       denySelf: 'Use logout-all to drop your own sessions',
     });
 
-    await this.revokeSessionsOf(id);
+    await this.prisma.client.$transaction(async (tx) => {
+      const current = await tx.user.findUnique({
+        where: { id },
+        select: { role: true },
+      });
 
-    await this.logs.write({
-      actorId: actor.userId,
-      targetId: id,
-      action: 'sessions_revoke',
+      if (!current) {
+        throw new NotFoundException('User not found');
+      }
+
+      if (!canManageRole(actor.role, current.role)) {
+        throw new ForbiddenException('Insufficient role');
+      }
+
+      await this.revokeSessionsOf(id, tx);
+
+      await this.logs.write(
+        {
+          actorId: actor.userId,
+          targetId: id,
+          action: 'sessions_revoke',
+        },
+        tx,
+      );
     });
   }
 
@@ -218,24 +260,36 @@ export class UsersAdminService {
     id: string,
     blocked: boolean,
   ): Promise<AdminUser> {
-    await this.getManageableUser(actor, id, {
+    const target = await this.getManageableUser(actor, id, {
       denySelf: 'You cannot block your own account',
     });
 
-    const updated = await this.prisma.client.user.update({
-      where: { id },
-      data: { isBlocked: blocked },
-      include: COUNT_INCLUDE,
-    });
+    const updated = await this.prisma.client.$transaction(async (tx) => {
+      const changed = await tx.user.updateMany({
+        where: { id, role: target.role },
+        data: { isBlocked: blocked },
+      });
 
-    if (blocked) {
-      await this.revokeSessionsOf(id);
-    }
+      if (changed.count !== 1) {
+        throw new ConflictException(
+          'User role changed concurrently, retry the action',
+        );
+      }
 
-    await this.logs.write({
-      actorId: actor.userId,
-      targetId: id,
-      action: blocked ? 'user_block' : 'user_unblock',
+      if (blocked) {
+        await this.revokeSessionsOf(id, tx);
+      }
+
+      await this.logs.write(
+        {
+          actorId: actor.userId,
+          targetId: id,
+          action: blocked ? 'user_block' : 'user_unblock',
+        },
+        tx,
+      );
+
+      return this.reloadManagedUser(tx, id);
     });
 
     return this.toAdminUser(updated);
@@ -277,8 +331,17 @@ export class UsersAdminService {
       }
 
       await tx.project.deleteMany({ where: { ownerId: id } });
-      // Refresh tokens are removed by their own `onDelete: Cascade`.
-      await tx.user.delete({ where: { id } });
+      // Refresh tokens are removed by their own `onDelete: Cascade`. The role
+      // filter keeps a concurrently promoted target out of reach.
+      const deleted = await tx.user.deleteMany({
+        where: { id, role: target.role },
+      });
+
+      if (deleted.count !== 1) {
+        throw new ConflictException(
+          'User role changed concurrently, retry the action',
+        );
+      }
 
       await this.logs.write(
         {
@@ -324,8 +387,29 @@ export class UsersAdminService {
     return user;
   }
 
-  private async revokeSessionsOf(userId: string): Promise<void> {
-    await this.prisma.client.refreshToken.updateMany({
+  private async reloadManagedUser(
+    tx: Prisma.TransactionClient,
+    id: string,
+  ): Promise<UserWithCounts> {
+    const user = await tx.user.findUnique({
+      where: { id },
+      include: COUNT_INCLUDE,
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
+  }
+
+  private async revokeSessionsOf(
+    userId: string,
+    tx?: Prisma.TransactionClient,
+  ): Promise<void> {
+    const client = tx ?? this.prisma.client;
+
+    await client.refreshToken.updateMany({
       where: { userId, revokedAt: null },
       data: { revokedAt: new Date() },
     });

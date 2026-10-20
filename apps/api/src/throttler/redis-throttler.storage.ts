@@ -83,4 +83,8 @@ export class RedisThrottlerStorage
   async onModuleDestroy(): Promise<void> {
     await this.redis.quit();
   }
+
+  async ping(): Promise<boolean> {
+    return (await this.redis.ping()) === 'PONG';
+  }
 }

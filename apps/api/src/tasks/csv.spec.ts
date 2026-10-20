@@ -50,4 +50,24 @@ describe('should serialize cells following RFC 4180', () => {
 
     expect(csv).toBe(`${BOM}a,b\r\n"x,y","z""w"\r\n`);
   });
+
+  it('should neutralize text that a spreadsheet would treat as a formula', () => {
+    const csv = toCsv(
+      ['title'],
+      [['=1+1'], ['+SUM(A1)'], ['-2+3'], ['@cmd'], ['	value']],
+    );
+
+    expect(csv).toBe(
+      `${BOM}title\r\n'=1+1\r\n'+SUM(A1)\r\n'-2+3\r\n'@cmd\r\n'	value\r\n`,
+    );
+  });
+
+  it('should leave numbers and dates untouched by formula escaping', () => {
+    const csv = toCsv(
+      ['amount', 'dueDate'],
+      [[-5, new Date('2026-01-31T10:00:00.000Z')]],
+    );
+
+    expect(csv).toBe(`${BOM}amount,dueDate\r\n-5,2026-01-31T10:00:00.000Z\r\n`);
+  });
 });

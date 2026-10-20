@@ -6,6 +6,7 @@ import { NestFactory } from '@nestjs/core';
 import cookieParser from 'cookie-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { validateEnv } from './config/env';
 import { CORS_ORIGINS } from './security/csrf.config';
 
 const SWAGGER_PATH = 'docs';
@@ -38,12 +39,30 @@ function setupSwagger(app: INestApplication) {
   });
 }
 
+/** `TRUST_PROXY` is a hop count (`1`) or a comma-separated list of addresses. */
+function parseTrustProxy(value: string): number | string[] {
+  return /^\d+$/.test(value)
+    ? Number(value)
+    : value.split(',').map((entry) => entry.trim());
+}
+
 async function bootstrap() {
+  validateEnv();
+
   const app = await NestFactory.create(AppModule);
 
   app.setGlobalPrefix('api');
   app.use(cookieParser());
   app.enableCors({ origin: CORS_ORIGINS, credentials: true });
+
+  if (process.env.TRUST_PROXY) {
+    app
+      .getHttpAdapter()
+      .getInstance()
+      .set('trust proxy', parseTrustProxy(process.env.TRUST_PROXY));
+  }
+
+  app.enableShutdownHooks();
 
   if (process.env.NODE_ENV !== 'production') {
     setupSwagger(app);

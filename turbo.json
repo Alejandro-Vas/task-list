@@ -2,10 +2,22 @@
   "$schema": "https://turbo.build/schema.json",
   "globalEnv": [
     "DATABASE_URL",
+    "NODE_ENV",
     "REDIS_HOST",
     "REDIS_PORT",
     "API_PORT",
-    "NEXT_PUBLIC_API_URL"
+    "NEXT_PUBLIC_API_URL",
+    "WEB_URL",
+    "JWT_ACCESS_SECRET",
+    "JWT_ACCESS_TTL",
+    "CORS_ORIGIN",
+    "COOKIE_SAME_SITE",
+    "COOKIE_SECURE",
+    "THROTTLE_TTL",
+    "THROTTLE_LIMIT",
+    "THROTTLE_AUTH_TTL",
+    "THROTTLE_AUTH_LIMIT",
+    "TRUST_PROXY"
   ],
   "tasks": {
     "build": {

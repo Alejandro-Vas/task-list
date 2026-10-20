@@ -1,9 +1,24 @@
 import { z } from 'zod';
 
+const BCRYPT_MAX_PASSWORD_BYTES = 72;
+
+function utf8ByteLength(value: string): number {
+  return new TextEncoder().encode(value).length;
+}
+
+/** bcrypt silently ignores everything after the first 72 UTF-8 bytes. */
+const newPasswordSchema = z
+  .string()
+  .min(8)
+  .refine(
+    (value) => utf8ByteLength(value) <= BCRYPT_MAX_PASSWORD_BYTES,
+    `Password must be at most ${BCRYPT_MAX_PASSWORD_BYTES} bytes in UTF-8`,
+  );
+
 export const registerSchema = z.object({
   email: z.email().trim().toLowerCase(),
   name: z.string().trim().min(1).max(100),
-  password: z.string().min(8).max(72),
+  password: newPasswordSchema,
 });
 export type RegisterInput = z.infer<typeof registerSchema>;
 
@@ -16,7 +31,7 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export const changePasswordSchema = z
   .object({
     currentPassword: z.string().min(1).max(72),
-    newPassword: z.string().min(8).max(72),
+    newPassword: newPasswordSchema,
   })
   .refine((data) => data.newPassword !== data.currentPassword, {
     message: 'New password must differ from the current one',
