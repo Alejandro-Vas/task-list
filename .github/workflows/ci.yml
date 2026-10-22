@@ -75,3 +75,31 @@ jobs:
         run: yarn db:generate
       - name: Run tests
         run: yarn test
+
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      - name: Build web application
+        run: yarn turbo run build --filter=@repo/web
+      - name: Install Playwright browsers
+        run: yarn workspace @repo/web exec playwright install --with-deps chromium
+      - name: Run E2E tests
+        run: yarn workspace @repo/web test:e2e
+      - name: Upload Playwright artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            apps/web/playwright-report/
+            apps/web/test-results/
+          retention-days: 7
