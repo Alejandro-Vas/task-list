@@ -21,3 +21,5 @@ export {
   useUpdateAdminUser,
   useUpdateUserRole,
 } from './api/user-admin-mutations';
+export { UserBadge } from './ui/UserBadge';
+
