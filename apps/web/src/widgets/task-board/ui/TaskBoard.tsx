@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { taskFilterSchema, type TaskFilter } from '@repo/shared';
 import { useOverdueCountQuery, useTasksQuery } from '@/entities/task';
+import { UserBadge } from '@/entities/user';
 import { LogoutButton, useAuth } from '@/features/auth';
 import { CreateTaskForm } from '@/features/create-task';
 import { ExportTasksCsvButton } from '@/features/export-tasks-csv';
@@ -29,15 +30,18 @@ export function TaskBoard() {
     <>
       <header className="page__header">
         <div className="page__header-row">
-          <h1 className="page__title">
-            Task List
-            {overdueCount !== null && overdueCount > 0 ? (
-              <span className="page__overdue-badge">
-                overdue {overdueCount}
-              </span>
-            ) : null}
-          </h1>
+          <div>
+            <h1 className="page__title">
+              Task List
+              {overdueCount !== null && overdueCount > 0 ? (
+                <span className="page__overdue-badge">
+                  overdue {overdueCount}
+                </span>
+              ) : null}
+            </h1>
+          </div>
           <div className="page__nav">
+            <UserBadge />
             {user !== null && isAdminRole(user.role) ? (
               <Link href="/admin" className="page__nav-link">
                 Admin

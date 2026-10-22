@@ -50,7 +50,7 @@ export function ChangePasswordForm() {
   }
 
   return (
-    <form className="auth-form" onSubmit={handleSubmit}>
+    <form className="auth-form auth-form--settings" onSubmit={handleSubmit}>
       <h1 className="auth-form__title">Change password</h1>
       <input
         className="auth-form__input"
