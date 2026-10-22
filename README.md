@@ -206,6 +206,8 @@ Studio поднимается на http://localhost:5555 и показывает
 ```bash
 yarn dev            # web + api + worker в watch-режиме
 yarn build          # сборка всех пакетов через Turborepo
+yarn test           # unit-тесты (Vitest)
+yarn test:e2e       # браузерные E2E-тесты (Playwright, apps/web/e2e)
 yarn db:up          # поднять Postgres + Redis
 yarn db:down        # остановить контейнеры
 yarn db:generate    # prisma generate
@@ -213,6 +215,21 @@ yarn db:migrate     # prisma migrate dev
 yarn db:seed        # залить мок-данные
 yarn workspace @repo/db studio   # Prisma Studio
 ```
+
+## E2E-тесты и AI-агенты
+
+Браузерные тесты фронтенда — Playwright (`apps/web/e2e`, конфиг — `apps/web/playwright.config.ts`):
+
+```bash
+yarn test:e2e       # все e2e-тесты (сам поднимет Next dev)
+yarn workspace @repo/web test:e2e:ui       # интерактивный Runner
+yarn workspace @repo/web test:e2e:codegen  # запись действий в код
+```
+
+Для AI-ассистентов (Koda) подключён агентный режим Playwright: официальные скиллы
+в `.agents/skills/playwright-*`, MCP-серверы (`playwright mcp`, `run-test-mcp-server`)
+позволяют Koda писать тесты, дебажить и чинить упавшие тесты автоматически.
+Подробности, конвенции селекторов и дебаг по trace — в `apps/web/e2e/README.md`.
 
 ## Переменные окружения
 
