@@ -760,6 +760,63 @@ button.status-tabs__tab {
   font-size: 13px;
 }
 
+.task-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.task-pagination__btn {
+  padding: 6px 12px;
+  border: 1px solid #9ca3af;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.task-pagination__btn:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.task-pagination__btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.task-pagination__info {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.task-pagination__size {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.task-pagination__select {
+  padding: 6px 8px;
+  border: 1px solid #9ca3af;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.task-pagination__select:focus {
+  border-color: #2563eb;
+  outline: none;
+}
+
 .admin-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));

@@ -53,6 +53,7 @@ model Task {
 
   @@index([assigneeId])
   @@index([ownerId])
+  @@index([ownerId, createdAt(sort: Desc), id(sort: Desc)])
   @@index([projectId])
   @@index([dueDate])
 }

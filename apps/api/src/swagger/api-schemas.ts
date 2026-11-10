@@ -301,3 +301,17 @@ export class PaginatedAdminLogs {
   @ApiProperty({ type: 'integer' })
   perPage!: number;
 }
+
+export class PagedTasks {
+  @ApiProperty({ type: [Task] })
+  items!: Task[];
+
+  @ApiProperty({ type: 'integer' })
+  total!: number;
+
+  @ApiProperty({ type: 'integer' })
+  page!: number;
+
+  @ApiProperty({ type: 'integer' })
+  perPage!: number;
+}

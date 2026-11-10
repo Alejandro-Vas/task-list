@@ -53,6 +53,30 @@ export class TasksService {
     });
   }
 
+  async findPage(
+    userId: string,
+    status: TaskFilter,
+    page: number,
+    perPage: number,
+  ) {
+    const where = {
+      ownerId: userId,
+      ...(status === 'ALL' ? {} : { status }),
+    };
+
+    const [items, total] = await Promise.all([
+      this.prisma.client.task.findMany({
+        where,
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        skip: (page - 1) * perPage,
+        take: perPage,
+      }),
+      this.prisma.client.task.count({ where }),
+    ]);
+
+    return { items, total, page, perPage };
+  }
+
   /** Every task of the user, serialized as CSV. Status filters are ignored on purpose. */
   async exportCsv(userId: string): Promise<string> {
     const tasks = await this.findAll(userId);

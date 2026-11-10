@@ -6,6 +6,8 @@ import {
   UNDO_DELETE_WINDOW_MS,
   type CreateTaskInput,
   type Task,
+  type TaskFilter,
+  type TasksPage,
   type TaskStatus,
   type UpdateTaskInput,
 } from '@repo/shared';
@@ -20,7 +22,7 @@ import {
 } from '@/shared/api/tasks';
 import { taskKeys } from './task-keys';
 
-type ListsSnapshot = Array<[QueryKey, Task[] | undefined]>;
+type ListsSnapshot = Array<[QueryKey, TasksPage | undefined]>;
 
 function patchTask(list: Task[], updated: Task): Task[] {
   return list.map((task) => (task.id === updated.id ? updated : task));
@@ -38,13 +40,38 @@ function patchAllLists(
   client: QueryClient,
   patch: (list: Task[]) => Task[],
 ): void {
-  client.setQueriesData<Task[]>({ queryKey: taskKeys.lists() }, (list) =>
-    list ? patch(list) : list,
+  client.setQueriesData<TasksPage>({ queryKey: taskKeys.lists() }, (page) =>
+    page ? { ...page, items: patch(page.items) } : page,
   );
 }
 
+/** Key shape is `[...lists(), status, page, perPage]`, so status sits at index 2. */
+function prependToFirstPages(client: QueryClient, created: Task): void {
+  const entries = client.getQueriesData<TasksPage>({
+    queryKey: taskKeys.lists(),
+  });
+
+  for (const [key, data] of entries) {
+    if (!data || data.page !== 1) {
+      continue;
+    }
+
+    const status = key[2] as TaskFilter;
+
+    if (status !== 'ALL' && status !== created.status) {
+      continue;
+    }
+
+    client.setQueryData(key, {
+      ...data,
+      items: prependTask(data.items, created),
+      total: data.total + 1,
+    });
+  }
+}
+
 function snapshotLists(client: QueryClient): ListsSnapshot {
-  return client.getQueriesData<Task[]>({ queryKey: taskKeys.lists() });
+  return client.getQueriesData<TasksPage>({ queryKey: taskKeys.lists() });
 }
 
 function restoreLists(client: QueryClient, snapshot: ListsSnapshot): void {
@@ -79,18 +106,9 @@ export function useCreateTask() {
   return useMutation({
     mutationFn: (input: CreateTaskInput) => createTask(input),
     onSuccess: (created) => {
-      // Server sorts by createdAt desc, so a new task goes first.
-      // Prepend only into lists where it belongs: ALL and its own status.
-      for (const key of [
-        taskKeys.list('ALL'),
-        taskKeys.list(created.status),
-      ] as const) {
-        const current = client.getQueryData<Task[]>(key);
-
-        if (current) {
-          client.setQueryData(key, prependTask(current, created));
-        }
-      }
+      // Server sorts by createdAt desc, so a new task goes on page 1 of every
+      // list it belongs to: ALL and its own status, at any cached page size.
+      prependToFirstPages(client, created);
 
       invalidateTasks(client);
     },
