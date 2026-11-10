@@ -5,6 +5,7 @@ import type {
   Task,
   TaskFilter,
   TaskStatus,
+  TasksPage,
   UpdateTaskInput,
 } from '@repo/shared';
 import { ApiError, authedFetch, readBlob, readJson, readVoid } from './client';
@@ -13,11 +14,18 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
 export async function fetchTasks(
   status: TaskFilter = 'ALL',
-): Promise<Task[]> {
-  const query = status === 'ALL' ? '' : `?status=${status}`;
-  const response = await authedFetch(`/api/tasks${query}`);
+  page = 1,
+  perPage = 20,
+): Promise<TasksPage> {
+  const query = new URLSearchParams({ page: String(page), perPage: String(perPage) });
 
-  return readJson<Task[]>(response);
+  if (status !== 'ALL') {
+    query.set('status', status);
+  }
+
+  const response = await authedFetch(`/api/tasks?${query}`);
+
+  return readJson<TasksPage>(response);
 }
 
 export async function fetchOverdueCount(): Promise<number> {

@@ -22,6 +22,7 @@ import {
   createTaskSchema,
   findAllTasksQuerySchema,
   TASK_FILTERS,
+  TASK_MAX_PER_PAGE,
   updateTaskDueDateSchema,
   updateTaskSchema,
   updateTaskStatusSchema,
@@ -36,6 +37,7 @@ import type { AuthUser } from '../auth/types/authenticated-request.type';
 import {
   CreateTaskBody,
   OverdueCount,
+  PagedTasks,
   Task,
   UpdateTaskBody,
   UpdateTaskDueDateBody,
@@ -52,16 +54,24 @@ export class TasksController {
 
   @Get()
   @ApiQuery({ name: 'status', enum: TASK_FILTERS, required: false })
-  @ApiOkResponse({ type: [Task] })
+  @ApiQuery({ name: 'page', type: 'number', required: false, example: 1 })
+  @ApiQuery({
+    name: 'perPage',
+    type: 'number',
+    required: false,
+    example: 20,
+    maximum: TASK_MAX_PER_PAGE,
+  })
+  @ApiOkResponse({ type: PagedTasks })
   findAll(@CurrentUser() user: AuthUser, @Query() query: unknown) {
     const parsed = findAllTasksQuerySchema.safeParse(query);
 
     if (!parsed.success) {
-      throw new BadRequestException('Invalid status filter');
+      throw new BadRequestException('Invalid tasks query');
     }
 
-    const { status }: FindAllTasksQuery = parsed.data;
-    return this.tasksService.findAll(user.userId, status);
+    const { status, page, perPage }: FindAllTasksQuery = parsed.data;
+    return this.tasksService.findPage(user.userId, status, page, perPage);
   }
 
   @Get('overdue/count')

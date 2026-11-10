@@ -49,10 +49,22 @@ export const TASK_FILTERS = ['ALL', 'TODO', 'IN_PROGRESS', 'DONE'] as const;
 export const taskFilterSchema = z.enum(TASK_FILTERS);
 export type TaskFilter = z.infer<typeof taskFilterSchema>;
 
+export const TASK_MAX_PER_PAGE = 100;
+
 export const findAllTasksQuerySchema = z.object({
   status: taskFilterSchema.default('ALL'),
+  page: z.coerce.number().int().min(1).default(1),
+  perPage: z.coerce.number().int().min(1).max(TASK_MAX_PER_PAGE).default(20),
 });
 export type FindAllTasksQuery = z.infer<typeof findAllTasksQuerySchema>;
+
+export const tasksPageSchema = z.object({
+  items: z.array(taskSchema),
+  total: z.number().int(),
+  page: z.number().int(),
+  perPage: z.number().int(),
+});
+export type TasksPage = z.infer<typeof tasksPageSchema>;
 
 export const shareTaskResponseSchema = z.object({
   url: z.string(),
